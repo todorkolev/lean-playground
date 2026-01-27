@@ -2,45 +2,32 @@
 
 ## Project Structure
 - **algorithms/**: QuantConnect Lean algorithm projects (Python)
-- **research/**: Standalone Jupyter research notebooks
-- **data/**: Local market data for Lean engine
+- **notebooks/**: Standalone Jupyter research notebooks
+- **data/**: Symlink to /Lean/Data (market data for Lean engine)
 - **results/**: Backtest output and reports
-- **scripts/**: Utility scripts
+- **scripts/**: `lp` CLI and lean_playground Python package
 - **tests/**: Smoke and integration tests
-- **/Lean/Algorithm.Python/**: Reference algorithms from the Lean repo (inside container)
+- **/Lean/Algorithm.Python/**: ~500 algorithm examples from the Lean repo (inside container)
 
 ## Commands
 
-### Workspace Initialization
+### lp CLI (no QuantConnect auth required)
 ```bash
-lean init                  # Download sample data and create lean.json
+lp backtest algorithms/sample_sma_crossover    # Run a backtest
+lp create algorithms/my_strategy               # Create new project from template
+lp create algorithms/my_macd --from MACDTrendAlgorithm  # Create from algorithm example
+lp browse                                      # List all algorithm examples
+lp browse sma                                  # Search algorithm examples
+lp jupyter                                     # Start Jupyter Lab
+lp status                                      # Show workspace status
 ```
 
-### Creating Algorithms
+### Lean CLI (requires QuantConnect subscription, optional)
 ```bash
-lean create-project algorithms/my_strategy --language python
-```
-
-### Running Backtests
-```bash
-lean backtest algorithms/sample_sma_crossover
-```
-
-### Research
-```bash
-# Start Jupyter Lab
-./scripts/start_jupyter.sh
-# Open http://localhost:8888/lab
-```
-
-### Reference Algorithms
-```bash
-# Browse all ~450 Python algorithm examples from the Lean repo
-ls /Lean/Algorithm.Python/
-
-# Copy a reference algorithm into a new project
-lean create-project algorithms/my_algo --language python
-cp /Lean/Algorithm.Python/BasicTemplateAlgorithm.py algorithms/my_algo/main.py
+lean login                   # Authenticate with QuantConnect
+lean init                    # Initialize workspace with org (creates lean.json)
+lean backtest algorithms/x   # Run backtest via Docker-in-Docker
+lean cloud push              # Push to QuantConnect cloud
 ```
 
 ### Testing

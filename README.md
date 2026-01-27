@@ -2,6 +2,8 @@
 
 A QuantConnect Lean algorithmic trading research and development playground with ML capabilities.
 
+No QuantConnect subscription required. Works locally out of the box.
+
 ## Project Structure
 
 ```
@@ -9,15 +11,17 @@ algorithms/                # Lean algorithm projects
   sample_sma_crossover/    # Sample: SMA crossover strategy
     main.py                # Algorithm implementation
     research.ipynb         # Strategy research notebook
-research/                  # Standalone research notebooks
+notebooks/                 # Standalone research notebooks
   getting_started.ipynb    # Intro to QuantConnect research
-data/                      # Local market data
-results/                   # Backtest results
-scripts/                   # Utility scripts
-lean.json                  # Lean engine configuration
+data/                      # Symlink to /Lean/Data (market data)
+results/                   # Backtest output and reports
+scripts/                   # lp CLI and lean_playground package
+  lp                       # Entry point
+  lean_playground/         # Python package
+tests/                     # Smoke and integration tests
 ```
 
-Reference algorithms from the Lean repo are available inside the container at `/Lean/Algorithm.Python/`.
+Algorithm examples from the Lean repo (~500 Python examples) are available inside the container at `/Lean/Algorithm.Python/`.
 
 ## Quick Start
 
@@ -25,38 +29,32 @@ Reference algorithms from the Lean repo are available inside the container at `/
 
 Open in VS Code and use "Reopen in Container". The devcontainer provides:
 - QuantConnect Lean engine (Python + .NET)
-- Lean CLI for backtesting and project management
+- `lp` CLI for backtesting and project management (no auth required)
+- ~500 Python algorithm examples from the Lean repo
 - JupyterLab on port 8888
 - Full ML stack (PyTorch, JAX, scikit-learn, XGBoost)
 - AI tools (Claude Code, Augment, Aider)
 - Code quality tools (Black, isort, Pylint)
-- Docker-in-Docker for running backtests
-
-### Initialize Workspace
-
-```bash
-# Download sample market data
-lean init
-```
+- Optional: Lean CLI for QuantConnect cloud features (requires subscription)
 
 ### Running a Backtest
 
 ```bash
-lean backtest algorithms/sample_sma_crossover
+lp backtest algorithms/sample_sma_crossover
 ```
 
 ### Research Environment
 
 ```bash
-./scripts/start_jupyter.sh
+lp jupyter
 # Open http://localhost:8888/lab
 ```
 
 ## Creating a New Algorithm
 
-1. Create a project using the Lean CLI:
+1. Create a project:
    ```bash
-   lean create-project algorithms/my_strategy --language python
+   lp create algorithms/my_strategy
    ```
 
 2. Edit `algorithms/my_strategy/main.py` with your strategy:
@@ -75,22 +73,44 @@ lean backtest algorithms/sample_sma_crossover
 
 3. Run the backtest:
    ```bash
-   lean backtest algorithms/my_strategy
+   lp backtest algorithms/my_strategy
    ```
 
-### Using Reference Algorithms
+### Using Algorithm Examples
 
-The container includes ~450 Python algorithm examples from the Lean repo:
+The container includes ~500 Python algorithm examples from the Lean repo:
 
 ```bash
-# Browse reference algorithms
-ls /Lean/Algorithm.Python/
+# Browse all algorithm examples
+lp browse
 
-# Copy one into a new project
-lean create-project algorithms/macd_trend --language python
-cp /Lean/Algorithm.Python/MACDTrendAlgorithm.py algorithms/macd_trend/main.py
-lean backtest algorithms/macd_trend
+# Search by keyword
+lp browse macd
+
+# Create a project from an algorithm example
+lp create algorithms/macd_trend --from MACDTrendAlgorithm
+
+# Run it
+lp backtest algorithms/macd_trend
 ```
+
+## QuantConnect Cloud (Optional)
+
+If you have a QuantConnect subscription, you can use the Lean CLI for cloud features:
+
+```bash
+# Authenticate
+lean login
+
+# Initialize workspace for your organization
+lean init
+
+# Push to cloud, download data, run live trading, etc.
+lean cloud push
+lean data download
+```
+
+The `lp` commands work independently and do not require authentication.
 
 ## ML Stack
 
