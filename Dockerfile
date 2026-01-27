@@ -36,12 +36,9 @@ RUN uv pip install pytest black isort pylint debugpy
 # JupyterLab
 RUN uv pip install --system jupyterlab
 
-# Lean CLI and additional ML packages not in foundation
-RUN pip install lean river einops
-
-# Copy pyproject.toml, README.md and install dependencies
-COPY pyproject.toml README.md ./
-RUN uv pip install --system -e ".[dev,jupyter]"
+# Copy requirements and install dependencies
+COPY requirements.txt ./
+RUN uv pip install --system -r requirements.txt
 
 # Various packages install a `tests` directory which causes pytest to use it instead of our local one
 RUN python -c "import site; import os; [os.system(f'rm -rf {path}/tests') for path in site.getsitepackages()]"

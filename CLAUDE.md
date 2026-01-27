@@ -12,8 +12,7 @@
 
 ### Installation
 ```bash
-uv sync                    # Install dependencies with UV
-uv pip install -e ".[dev]" # Install with dev dependencies
+uv pip install -r requirements.txt  # Install dependencies
 ```
 
 ### Running Backtests
