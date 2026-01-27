@@ -53,10 +53,10 @@ test_output.log
 # =============================================================================
 # Lean data and results (download/generate separately)
 # =============================================================================
-/data/
-!/data/.gitkeep
+/data
 /results/
 !/results/.gitkeep
+/algorithm_examples
 model_cache/
 out/
 tmp/
@@ -65,6 +65,7 @@ tmp/
 # Jupyter Notebook
 # =============================================================================
 .ipynb_checkpoints
+/notebooks/config.json
 
 # IPython
 profile_default/
@@ -106,6 +107,7 @@ logs/
 *.log
 *.log.*
 .logs/
+log.txt
 
 # =============================================================================
 # Task Master AI (regenerate as needed)

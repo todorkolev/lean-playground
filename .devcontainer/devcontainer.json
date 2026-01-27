@@ -11,7 +11,7 @@
         "--shm-size=8g"
     ],
     "containerEnv": {
-        "PYTHONPATH": "/workspaces/lean-playground/algorithms",
+        "PYTHONPATH": "/workspaces/lean-playground/scripts:/workspaces/lean-playground/algorithms",
         "PYTHONDONTWRITEBYTECODE": "1",
         "CLAUDE_CONFIG_DIR": "/root/.claude"
     },
@@ -29,7 +29,8 @@
                 },
                 "terminal.integrated.defaultProfile.linux": "zsh",
                 "python.analysis.extraPaths": [
-                    "/workspaces/lean-playground/algorithms"
+                    "/workspaces/lean-playground/algorithms",
+                    "/workspaces/lean-playground/scripts"
                 ],
                 "python.envFile": "${workspaceFolder}/.env"
             },
@@ -73,9 +74,10 @@
             "label": "Jupyter Lab"
         }
     },
-    "postCreateCommand": "mkdir -p Notebooks && uv pip install debugpy",
+    "postCreateCommand": "ln -sf /Lean/Data data 2>/dev/null; ln -sf /Lean/Algorithm.Python algorithm_examples 2>/dev/null; uv pip install debugpy",
     "overrideCommand": false,
     "remoteEnv": {
+        "PATH": "/workspaces/lean-playground/scripts:${containerEnv:PATH}",
         "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
         "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
     }

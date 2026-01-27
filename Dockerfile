@@ -38,15 +38,20 @@ RUN pip install uv
 ENV UV_SYSTEM_PYTHON=1 \
     UV_PROJECT_ENVIRONMENT="/usr/local"
 
-# Install Lean CLI
+# Install Lean CLI (optional — for users with QuantConnect subscription)
 RUN uv pip install lean
 
 # Copy requirements and install project-specific dependencies
 COPY requirements.txt ./
 RUN uv pip install --system -r requirements.txt
 
-# Various packages install a `tests` directory which causes pytest to use it instead of our local one
-# RUN python -c "import site; import os; [os.system(f'rm -rf {path}/tests') for path in site.getsitepackages()]"
+# Download Python algorithm examples from Lean repo (~500 examples)
+RUN git clone --depth 1 --filter=blob:none --sparse \
+      https://github.com/QuantConnect/Lean.git /tmp/lean-source && \
+    cd /tmp/lean-source && \
+    git sparse-checkout set Algorithm.Python && \
+    cp -r Algorithm.Python /Lean/Algorithm.Python && \
+    rm -rf /tmp/lean-source
 
 # Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
