@@ -5,6 +5,7 @@
         "context": ".."
     },
     "workspaceFolder": "/workspaces/lean-playground",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/lean-playground,type=bind,consistency=cached",
     "runArgs": [
         "--memory-reservation=2g",
         "--shm-size=8g"

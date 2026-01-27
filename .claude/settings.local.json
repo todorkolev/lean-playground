@@ -1,0 +1,15 @@
+{
+  "model": "opus",
+  "alwaysThinkingEnabled": true,
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Edit",
+      "Write",
+      "NotebookEdit",
+      "WebFetch",
+      "WebSearch",
+      "Mcp"
+    ]
+  }
+}
