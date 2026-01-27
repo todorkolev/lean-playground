@@ -1,0 +1,20 @@
+{
+    "environment": "backtesting",
+    "algorithm-language": "Python",
+    "data-folder": "./data",
+    "results-destination-folder": "./results",
+    "show-missing-data-logs": true,
+    "maximum-chart-series": 30,
+    "maximum-data-points-per-chart-series": 1000000,
+    "environments": {
+        "backtesting": {
+            "live-mode": false,
+            "setup-handler": "QuantConnect.Lean.Engine.Setup.ConsoleSetup",
+            "result-handler": "QuantConnect.Lean.Engine.Results.BacktestingResultHandler",
+            "data-feed-handler": "QuantConnect.Lean.Engine.DataFeeds.FileSystemDataFeed",
+            "real-time-handler": "QuantConnect.Lean.Engine.RealTime.BacktestingRealTimeHandler",
+            "transaction-handler": "QuantConnect.Lean.Engine.TransactionHandlers.BacktestingTransactionHandler",
+            "history-provider": "QuantConnect.Lean.Engine.HistoricalData.SubscriptionDataReaderHistoryProvider"
+        }
+    }
+}

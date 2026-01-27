@@ -1,0 +1,80 @@
+{
+    "name": "Lean Playground",
+    "build": {
+        "dockerfile": "../Dockerfile",
+        "context": ".."
+    },
+    "workspaceFolder": "/workspaces/lean-playground",
+    "runArgs": [
+        "--memory-reservation=2g",
+        "--shm-size=8g"
+    ],
+    "containerEnv": {
+        "PYTHONPATH": "/workspaces/lean-playground/algorithms",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "CLAUDE_CONFIG_DIR": "/root/.claude"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.linting.enabled": true,
+                "python.linting.pylintEnabled": true,
+                "python.formatting.provider": "black",
+                "python.formatting.blackPath": "/usr/local/bin/black",
+                "editor.formatOnSave": true,
+                "editor.codeActionsOnSave": {
+                    "source.organizeImports": "explicit"
+                },
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "python.analysis.extraPaths": [
+                    "/workspaces/lean-playground/algorithms"
+                ],
+                "python.envFile": "${workspaceFolder}/.env"
+            },
+            "extensions": [
+                // Python
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-python.debugpy",
+                "ms-toolsai.jupyter",
+                // DevOps
+                "ms-azuretools.vscode-docker",
+                "github.vscode-github-actions",
+                "sanjulaganepola.github-local-actions",
+                // AI
+                "anthropic.claude-code",
+                "augment.vscode-augment",
+                "kilocode.kilo-code",
+                // Other
+                "ms-vscode.vscode-typescript-next",
+                "mechatroner.rainbow-csv",
+                "bierner.markdown-mermaid"
+            ]
+        }
+    },
+    "remoteUser": "root",
+    "features": {
+        "ghcr.io/devcontainers/features/git": {}
+    },
+    "mounts": [
+        "source=${localEnv:HOME}/.claude,target=/root/.claude,type=bind"
+    ],
+    "forwardPorts": [
+        8888
+    ],
+    "otherPortsAttributes": {
+        "onAutoForward": "notify"
+    },
+    "portsAttributes": {
+        "8888": {
+            "label": "Jupyter Lab"
+        }
+    },
+    "postCreateCommand": "uv pip install debugpy",
+    "postStartCommand": "/workspaces/lean-playground/scripts/start_jupyter.sh",
+    "remoteEnv": {
+        "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
+        "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
+    }
+}
