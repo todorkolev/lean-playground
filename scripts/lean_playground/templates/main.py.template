@@ -1,0 +1,13 @@
+from AlgorithmImports import *
+
+
+class {class_name}(QCAlgorithm):
+    """Algorithm description."""
+
+    def initialize(self):
+        self.set_start_date(2020, 1, 1)
+        self.set_end_date(2023, 12, 31)
+        self.set_cash(100_000)
+
+    def on_data(self, data: Slice):
+        pass

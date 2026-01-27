@@ -1,0 +1,49 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# {project_name} — Research Notebook\n",
+    "\n",
+    "Use this notebook for exploratory research on your strategy."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Initialize the QuantBook research environment\n",
+    "%run /Lean/Launcher/bin/Debug/start.py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qb = QuantBook()\n",
+    "\n",
+    "spy = qb.add_equity(\"SPY\", Resolution.DAILY)\n",
+    "history = qb.history(spy.symbol, 30, Resolution.DAILY)\n",
+    "history"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "name": "python",
+   "version": "3.11.9"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

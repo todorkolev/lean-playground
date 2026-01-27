@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+"""lp — Lean Playground CLI.
+
+Local-first workspace tooling for QuantConnect Lean.
+Runs backtests, creates projects, and browses algorithm examples
+without requiring QuantConnect authentication.
+
+Usage:
+    lp backtest <project>              Run a backtest
+    lp create <name> [--from REF]      Create a new algorithm project
+    lp browse [keyword]                Browse algorithm examples
+    lp jupyter [--port PORT]           Start Jupyter Lab
+    lp status                          Show workspace status
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+
+def _cmd_backtest(args: argparse.Namespace) -> int:
+    from lean_playground.backtest import run_backtest
+
+    project_path = Path(args.project)
+    return run_backtest(project_path)
+
+
+def _cmd_create(args: argparse.Namespace) -> int:
+    from lean_playground.project import create_project
+
+    try:
+        create_project(args.name, from_reference=args.from_ref)
+        return 0
+    except (FileExistsError, FileNotFoundError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+def _cmd_browse(args: argparse.Namespace) -> int:
+    from lean_playground.browse import browse, print_browse_results
+
+    results = browse(args.keyword)
+    print_browse_results(results)
+    return 0
+
+
+def _cmd_jupyter(args: argparse.Namespace) -> int:
+    from lean_playground.jupyter import launch_jupyter
+
+    return launch_jupyter(port=args.port)
+
+
+def _cmd_status(args: argparse.Namespace) -> int:
+    from lean_playground.status import print_status
+
+    print_status()
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        prog="lp",
+        description="Lean Playground — local-first workspace tooling for QuantConnect Lean.",
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # backtest
+    p_backtest = subparsers.add_parser(
+        "backtest",
+        help="Run a backtest using the Lean engine directly",
+    )
+    p_backtest.add_argument(
+        "project",
+        help="Path to the algorithm project directory (e.g., algorithms/sample_sma_crossover)",
+    )
+    p_backtest.set_defaults(func=_cmd_backtest)
+
+    # create
+    p_create = subparsers.add_parser(
+        "create",
+        help="Create a new algorithm project",
+    )
+    p_create.add_argument(
+        "name",
+        help="Project name or path (e.g., 'my_algo' or 'algorithms/my_algo')",
+    )
+    p_create.add_argument(
+        "--from",
+        dest="from_ref",
+        metavar="REF",
+        default=None,
+        help="Copy from an algorithm example (e.g., MACDTrendAlgorithm)",
+    )
+    p_create.set_defaults(func=_cmd_create)
+
+    # browse
+    p_browse = subparsers.add_parser(
+        "browse",
+        help="Browse algorithm examples from the Lean repository",
+    )
+    p_browse.add_argument(
+        "keyword",
+        nargs="?",
+        default=None,
+        help="Optional keyword to filter algorithms",
+    )
+    p_browse.set_defaults(func=_cmd_browse)
+
+    # jupyter
+    p_jupyter = subparsers.add_parser(
+        "jupyter",
+        help="Start Jupyter Lab with Lean research environment",
+    )
+    p_jupyter.add_argument(
+        "--port",
+        type=int,
+        default=8888,
+        help="Port for Jupyter Lab (default: 8888)",
+    )
+    p_jupyter.set_defaults(func=_cmd_jupyter)
+
+    # status
+    p_status = subparsers.add_parser(
+        "status",
+        help="Show workspace status",
+    )
+    p_status.set_defaults(func=_cmd_status)
+
+    args = parser.parse_args()
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
