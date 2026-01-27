@@ -1,6 +1,12 @@
 """Smoke tests to verify the Lean playground environment."""
 
+import os
 import py_compile
+
+import pytest
+
+
+ALGORITHMS_DIR = "algorithms"
 
 
 def test_ml_imports():
@@ -16,6 +22,19 @@ def test_ml_imports():
     assert torch.__version__
 
 
-def test_sample_algorithm_syntax():
-    """Verify the sample algorithm file has valid Python syntax."""
-    py_compile.compile("algorithms/sample_sma_crossover/main.py", doraise=True)
+def _discover_algorithm_directories():
+    """Find all algorithm directories containing main.py."""
+    if not os.path.isdir(ALGORITHMS_DIR):
+        return []
+    return [
+        name
+        for name in sorted(os.listdir(ALGORITHMS_DIR))
+        if os.path.isfile(os.path.join(ALGORITHMS_DIR, name, "main.py"))
+    ]
+
+
+@pytest.mark.parametrize("algo_name", _discover_algorithm_directories())
+def test_algorithm_syntax(algo_name):
+    """Verify each algorithm file has valid Python syntax."""
+    filepath = os.path.join(ALGORITHMS_DIR, algo_name, "main.py")
+    py_compile.compile(filepath, doraise=True)

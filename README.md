@@ -11,11 +11,13 @@ algorithms/                # Lean algorithm projects
     research.ipynb         # Strategy research notebook
 research/                  # Standalone research notebooks
   getting_started.ipynb    # Intro to QuantConnect research
-data/                      # Local market data (download separately)
+data/                      # Local market data
 results/                   # Backtest results
 scripts/                   # Utility scripts
 lean.json                  # Lean engine configuration
 ```
+
+Reference algorithms from the Lean repo are available inside the container at `/Lean/Algorithm.Python/`.
 
 ## Quick Start
 
@@ -23,22 +25,24 @@ lean.json                  # Lean engine configuration
 
 Open in VS Code and use "Reopen in Container". The devcontainer provides:
 - QuantConnect Lean engine (Python + .NET)
+- Lean CLI for backtesting and project management
 - JupyterLab on port 8888
 - Full ML stack (PyTorch, JAX, scikit-learn, XGBoost)
 - AI tools (Claude Code, Augment, Aider)
 - Code quality tools (Black, isort, Pylint)
+- Docker-in-Docker for running backtests
+
+### Initialize Workspace
+
+```bash
+# Download sample market data
+lean init
+```
 
 ### Running a Backtest
 
 ```bash
-# Download sample data first
-./scripts/download_data.sh
-
-# Run a backtest
 lean backtest algorithms/sample_sma_crossover
-
-# Or use the script
-./scripts/run_backtest.sh algorithms/sample_sma_crossover
 ```
 
 ### Research Environment
@@ -50,12 +54,12 @@ lean backtest algorithms/sample_sma_crossover
 
 ## Creating a New Algorithm
 
-1. Create a directory under `algorithms/`:
+1. Create a project using the Lean CLI:
    ```bash
-   mkdir algorithms/my_strategy
+   lean create-project algorithms/my_strategy --language python
    ```
 
-2. Create `main.py` with a `QCAlgorithm` subclass:
+2. Edit `algorithms/my_strategy/main.py` with your strategy:
    ```python
    from AlgorithmImports import *
 
@@ -74,12 +78,27 @@ lean backtest algorithms/sample_sma_crossover
    lean backtest algorithms/my_strategy
    ```
 
+### Using Reference Algorithms
+
+The container includes ~450 Python algorithm examples from the Lean repo:
+
+```bash
+# Browse reference algorithms
+ls /Lean/Algorithm.Python/
+
+# Copy one into a new project
+lean create-project algorithms/macd_trend --language python
+cp /Lean/Algorithm.Python/MACDTrendAlgorithm.py algorithms/macd_trend/main.py
+lean backtest algorithms/macd_trend
+```
+
 ## ML Stack
 
 This playground includes a full ML stack pre-installed in the container:
-- **Deep Learning**: PyTorch, JAX
-- **Classical ML**: scikit-learn, XGBoost
+- **Deep Learning**: PyTorch, JAX, TensorFlow
+- **Classical ML**: scikit-learn, XGBoost, LightGBM
 - **Streaming ML**: River
+- **Quantitative Finance**: QuantLib, zipline, pyfolio
 - **Scientific Computing**: NumPy, SciPy, Pandas, StatsModels
 - **Visualization**: Matplotlib, Seaborn, Plotly
 

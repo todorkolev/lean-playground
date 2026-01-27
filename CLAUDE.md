@@ -3,25 +3,27 @@
 ## Project Structure
 - **algorithms/**: QuantConnect Lean algorithm projects (Python)
 - **research/**: Standalone Jupyter research notebooks
-- **data/**: Local market data for Lean engine (download separately)
+- **data/**: Local market data for Lean engine
 - **results/**: Backtest output and reports
 - **scripts/**: Utility scripts
 - **tests/**: Smoke and integration tests
+- **/Lean/Algorithm.Python/**: Reference algorithms from the Lean repo (inside container)
 
 ## Commands
 
-### Installation
+### Workspace Initialization
 ```bash
-uv pip install -r requirements.txt  # Install dependencies
+lean init                  # Download sample data and create lean.json
+```
+
+### Creating Algorithms
+```bash
+lean create-project algorithms/my_strategy --language python
 ```
 
 ### Running Backtests
 ```bash
-# Via Lean CLI
 lean backtest algorithms/sample_sma_crossover
-
-# Via script
-./scripts/run_backtest.sh algorithms/sample_sma_crossover
 ```
 
 ### Research
@@ -31,10 +33,14 @@ lean backtest algorithms/sample_sma_crossover
 # Open http://localhost:8888/lab
 ```
 
-### Data Management
+### Reference Algorithms
 ```bash
-# Download sample data from QuantConnect
-./scripts/download_data.sh
+# Browse all ~450 Python algorithm examples from the Lean repo
+ls /Lean/Algorithm.Python/
+
+# Copy a reference algorithm into a new project
+lean create-project algorithms/my_algo --language python
+cp /Lean/Algorithm.Python/BasicTemplateAlgorithm.py algorithms/my_algo/main.py
 ```
 
 ### Testing

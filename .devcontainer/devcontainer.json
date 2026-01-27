@@ -56,7 +56,8 @@
     },
     "remoteUser": "root",
     "features": {
-        "ghcr.io/devcontainers/features/git": {}
+        "ghcr.io/devcontainers/features/git": {},
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
     "mounts": [
         "source=${localEnv:HOME}/.claude,target=/root/.claude,type=bind"
@@ -72,8 +73,8 @@
             "label": "Jupyter Lab"
         }
     },
-    "postCreateCommand": "uv pip install debugpy",
-    "postStartCommand": "/workspaces/lean-playground/scripts/start_jupyter.sh",
+    "postCreateCommand": "mkdir -p Notebooks && uv pip install debugpy",
+    "overrideCommand": false,
     "remoteEnv": {
         "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
         "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
