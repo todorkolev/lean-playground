@@ -1,5 +1,9 @@
 # Lean Playground Code Guidelines
 
+## MCP Tools
+
+When working with libraries, frameworks, or APIs, use the **context7** MCP tool to fetch up-to-date documentation directly into the conversation. This avoids outdated information and provides version-specific examples.
+
 ## Project Structure
 - **algorithms/**: QuantConnect Lean algorithm projects (Python)
 - **notebooks/**: Standalone Jupyter research notebooks
