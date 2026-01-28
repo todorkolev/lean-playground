@@ -47,7 +47,7 @@ RUN uv pip install --system -r requirements.txt
 
 # Download Python algorithm examples from Lean repo (~500 examples)
 RUN git clone --depth 1 --filter=blob:none --sparse \
-      https://github.com/QuantConnect/Lean.git /tmp/lean-source && \
+    https://github.com/QuantConnect/Lean.git /tmp/lean-source && \
     cd /tmp/lean-source && \
     git sparse-checkout set Algorithm.Python && \
     cp -r Algorithm.Python /Lean/Algorithm.Python && \
@@ -60,9 +60,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     rm -rf /var/lib/apt/lists/*
 
 # AI development tools
+# RUN npm install -g @augmentcode/auggie
+# RUN uv tool install --force --python python3.12 aider-chat@latest
 RUN curl -fsSL https://claude.ai/install.sh | bash
-RUN npm install -g @augmentcode/auggie
-RUN uv tool install --force --python python3.12 aider-chat@latest
 
 RUN npm install -g @buildforce/cli
 RUN buildforce init .

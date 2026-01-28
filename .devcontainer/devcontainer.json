@@ -6,10 +6,10 @@
     },
     "workspaceFolder": "/workspaces/lean-playground",
     "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/lean-playground,type=bind,consistency=cached",
-    "runArgs": [
-        "--memory-reservation=2g",
-        "--shm-size=8g"
-    ],
+    // "runArgs": [
+    //     "--memory-reservation=2g",
+    //     "--shm-size=8g"
+    // ],
     "containerEnv": {
         "PYTHONPATH": "/workspaces/lean-playground/scripts:/workspaces/lean-playground/algorithms",
         "PYTHONDONTWRITEBYTECODE": "1",
@@ -47,7 +47,7 @@
                 // AI
                 "anthropic.claude-code",
                 "augment.vscode-augment",
-                "kilocode.kilo-code",
+                // "kilocode.kilo-code",
                 // Other
                 "ms-vscode.vscode-typescript-next",
                 "mechatroner.rainbow-csv",
@@ -74,7 +74,8 @@
             "label": "Jupyter Lab"
         }
     },
-    "postCreateCommand": "ln -sf /Lean/Data data 2>/dev/null; ln -sf /Lean/Algorithm.Python algorithm_examples 2>/dev/null; uv pip install debugpy",
+    "postCreateCommand": "ln -sf /Lean/Data data 2>/dev/null; ln -sf /Lean/Algorithm.Python algorithm_examples 2>/dev/null",
+    "postAttachCommand": "claude",
     "overrideCommand": false,
     "remoteEnv": {
         "PATH": "/workspaces/lean-playground/scripts:${containerEnv:PATH}",
