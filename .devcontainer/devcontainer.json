@@ -32,7 +32,8 @@
                     "/workspaces/lean-playground/algorithms",
                     "/workspaces/lean-playground/scripts"
                 ],
-                "python.envFile": "${workspaceFolder}/.env"
+                "python.envFile": "${workspaceFolder}/.env",
+                "task.allowAutomaticTasks": "on"
             },
             "extensions": [
                 // Python
@@ -75,7 +76,6 @@
         }
     },
     "postCreateCommand": "ln -sf /Lean/Data data 2>/dev/null; ln -sf /Lean/Algorithm.Python algorithm_examples 2>/dev/null",
-    "postAttachCommand": "claude",
     "overrideCommand": false,
     "remoteEnv": {
         "PATH": "/workspaces/lean-playground/scripts:${containerEnv:PATH}",
