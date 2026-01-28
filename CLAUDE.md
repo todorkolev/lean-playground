@@ -5,8 +5,7 @@
 - **notebooks/**: Standalone Jupyter research notebooks
 - **data/**: Symlink to /Lean/Data (market data for Lean engine)
 - **results/**: Backtest output and reports
-- **scripts/**: `lp` CLI and lean_playground Python package
-- **tests/**: Smoke and integration tests
+- **scripts/**: `lp` CLI, lean_playground Python package, and tests
 - **/Lean/Algorithm.Python/**: ~500 algorithm examples from the Lean repo (inside container)
 
 ## Commands
@@ -32,7 +31,7 @@ lean cloud push              # Push to QuantConnect cloud
 
 ### Testing
 ```bash
-pytest tests/ -v
+pytest scripts/tests/ -v
 ```
 
 ## Code Style
@@ -56,7 +55,7 @@ pytest tests/ -v
 
 ==================
 
-Center on programming a domain model with rich understanding of processes/rules. Focus on core domain logic, base designs on domain models, iteratively refine.
+## Wisdom
 
 Never use mocks or fallbacks to patch the issues. Implement the intended functionality and fix the root causes of the problems. Raise errors when the code can not operate properly. Don't cover problems by silencing the exceptions. Keep the code elegant and clean.
 

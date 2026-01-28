@@ -1,63 +1,68 @@
 # Lean Playground
 
-A QuantConnect Lean algorithmic trading research and development playground with ML capabilities.
+A local-first development environment for algorithmic trading with [QuantConnect Lean](https://github.com/QuantConnect/Lean) — the open-source algorithmic trading engine. Build, backtest, and research trading strategies in Python without a QuantConnect subscription.
 
-No QuantConnect subscription required. Works locally out of the box.
+## Prerequisites
+
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine on Linux)
+2. Install [VS Code](https://code.visualstudio.com/)
+3. Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in VS Code
+
+## Quick Start
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/todorkolev/lean-playground.git
+   cd lean-playground
+   ```
+
+2. Open in VS Code:
+   ```bash
+   code .
+   ```
+
+3. When VS Code prompts you, click **Reopen in Container** (or open the Command Palette with `Ctrl+Shift+P` and run `Dev Containers: Reopen in Container`). The first build pulls a large base image and takes several minutes.
+
+4. Once inside the container, run the sample backtest:
+   ```bash
+   lp backtest algorithms/sample_sma_crossover
+   ```
 
 ## Project Structure
 
 ```
-algorithms/                # Lean algorithm projects
-  sample_sma_crossover/    # Sample: SMA crossover strategy
-    main.py                # Algorithm implementation
-    research.ipynb         # Strategy research notebook
-notebooks/                 # Standalone research notebooks
-  getting_started.ipynb    # Intro to QuantConnect research
-data/                      # Symlink to /Lean/Data (market data)
-results/                   # Backtest output and reports
-scripts/                   # lp CLI and lean_playground package
-  lp                       # Entry point
-  lean_playground/         # Python package
-tests/                     # Smoke and integration tests
+algorithms/                       # Your trading strategy projects
+  sample_sma_crossover/           # Sample: SMA crossover strategy
+    main.py                       # Algorithm implementation
+    research.ipynb                # Strategy research notebook
+notebooks/                        # Standalone Jupyter research notebooks
+data -> /Lean/Data                # Market data (symlink, created at startup)
+algorithm_examples -> /Lean/...   # ~500 Lean algorithm examples (symlink)
+results/                          # Backtest output and reports
+scripts/                          # lp CLI and lean_playground package
 ```
 
-Algorithm examples from the Lean repo (~500 Python examples) are available inside the container at `/Lean/Algorithm.Python/`.
+## Using the lp CLI
 
-## Quick Start
+The `lp` command is the primary interface. No authentication required.
 
-### DevContainer (Recommended)
+| Command | Description |
+|---|---|
+| `lp backtest <project>` | Run a backtest with the Lean engine |
+| `lp create <name>` | Create a new project from template |
+| `lp create <name> --from <Example>` | Create from a Lean algorithm example |
+| `lp browse [keyword]` | Browse ~500 algorithm examples |
+| `lp jupyter` | Restart Jupyter Lab (auto-starts with container) |
+| `lp status` | Show workspace and engine status |
 
-Open in VS Code and use "Reopen in Container". The devcontainer provides:
-- QuantConnect Lean engine (Python + .NET)
-- `lp` CLI for backtesting and project management (no auth required)
-- ~500 Python algorithm examples from the Lean repo
-- JupyterLab on port 8888
-- Full ML stack (PyTorch, JAX, scikit-learn, XGBoost)
-- AI tools (Claude Code, Augment, Aider)
-- Code quality tools (Black, isort, Pylint)
-- Optional: Lean CLI for QuantConnect cloud features (requires subscription)
-
-### Running a Backtest
-
-```bash
-lp backtest algorithms/sample_sma_crossover
-```
-
-### Research Environment
-
-```bash
-lp jupyter
-# Open http://localhost:8888/lab
-```
-
-## Creating a New Algorithm
+### Creating and Running a Strategy
 
 1. Create a project:
    ```bash
    lp create algorithms/my_strategy
    ```
 
-2. Edit `algorithms/my_strategy/main.py` with your strategy:
+2. Edit `algorithms/my_strategy/main.py`:
    ```python
    from AlgorithmImports import *
 
@@ -76,51 +81,78 @@ lp jupyter
    lp backtest algorithms/my_strategy
    ```
 
-### Using Algorithm Examples
+### Browsing Algorithm Examples
 
-The container includes ~500 Python algorithm examples from the Lean repo:
+The container includes ~500 Python algorithm examples from the [Lean repository](https://github.com/QuantConnect/Lean/tree/master/Algorithm.Python):
 
 ```bash
-# Browse all algorithm examples
-lp browse
-
-# Search by keyword
-lp browse macd
-
-# Create a project from an algorithm example
+lp browse              # List all examples
+lp browse macd         # Search by keyword
 lp create algorithms/macd_trend --from MACDTrendAlgorithm
-
-# Run it
 lp backtest algorithms/macd_trend
+```
+
+### Research Environment
+
+Jupyter Lab starts automatically with the container at [http://localhost:8888](http://localhost:8888). Use `QuantBook` in notebooks for interactive research with access to the Lean engine and market data.
+
+## Pre-installed Packages
+
+The [quantconnect/research](https://hub.docker.com/r/quantconnect/research) base image provides a broad set of data science and ML packages:
+
+- **Deep Learning**: PyTorch, JAX, TensorFlow
+- **Classical ML**: scikit-learn, XGBoost, LightGBM
+- **Streaming ML**: River
+- **Quantitative Finance**: pyfolio-reloaded
+- **Scientific Computing**: NumPy, SciPy, Pandas, StatsModels
+- **Visualization**: Matplotlib, Seaborn, Plotly
+
+River is the only additional package installed by this project (via `requirements.txt`). Everything else comes from the base image.
+
+## Development Tools
+
+### AI Assistants
+
+The container includes CLI tools for AI-assisted development:
+
+- [Claude Code](https://claude.ai/code) (CLI + VS Code extension)
+- [BuildForce](https://buildforce.dev/) (Plugin for Claude Code)
+- [Augment](https://www.augmentcode.com/) (VS Code extension)
+
+Set `ANTHROPIC_API_KEY` in your environment for Claude Code (see `.env.example`) or use your Claude subscription to login.
+
+### Editor Configuration
+
+VS Code is pre-configured with extensions for Python, Jupyter, and Docker. Format-on-save and import organization are enabled via Pylance.
+
+Standalone linters and formatters (Black, Pylint, isort) are not pre-installed. Add them if needed:
+```bash
+uv pip install black pylint isort
 ```
 
 ## QuantConnect Cloud (Optional)
 
-If you have a QuantConnect subscription, you can use the Lean CLI for cloud features:
+For users with a [QuantConnect](https://www.quantconnect.com/) subscription, the Lean CLI provides cloud features:
 
 ```bash
-# Authenticate
-lean login
-
-# Initialize workspace for your organization
-lean init
-
-# Push to cloud, download data, run live trading, etc.
-lean cloud push
-lean data download
+lean login                # Authenticate
+lean init                 # Initialize workspace
+lean cloud push           # Push to QuantConnect cloud
+lean data download        # Download market data
 ```
 
 The `lp` commands work independently and do not require authentication.
 
-## ML Stack
+## Troubleshooting
 
-This playground includes a full ML stack pre-installed in the container:
-- **Deep Learning**: PyTorch, JAX, TensorFlow
-- **Classical ML**: scikit-learn, XGBoost, LightGBM
-- **Streaming ML**: River
-- **Quantitative Finance**: QuantLib, zipline, pyfolio
-- **Scientific Computing**: NumPy, SciPy, Pandas, StatsModels
-- **Visualization**: Matplotlib, Seaborn, Plotly
+**`lp backtest` fails with "Lean engine not found"**
+You are likely running outside the devcontainer. The Lean engine is only available inside the container.
+
+**Port 8888 already in use**
+Use an alternative port: `lp jupyter --port 8889`
+
+**`lean login` or `lean init` fails**
+These commands require a QuantConnect subscription. Use `lp` commands instead for local-only workflows.
 
 ## License
 
