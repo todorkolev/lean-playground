@@ -1,6 +1,26 @@
 {
   "enabledPlugins": {
-    "ralph-wiggum@claude-code-plugins": true,
     "achieve@lean-playground": true
+  },
+  "extraKnownMarketplaces": {
+    "lean-playground": {
+      "source": {
+        "source": "directory",
+        "path": "./"
+      }
+    }
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/scripts/auto-install-plugins.sh",
+            "once": true
+          }
+        ]
+      }
+    ]
   }
 }
