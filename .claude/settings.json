@@ -1,6 +1,6 @@
 {
   "enabledPlugins": {
     "ralph-wiggum@claude-code-plugins": true,
-    "achieve@local": true
+    "achieve@lean-playground": true
   }
 }

@@ -79,6 +79,14 @@ Run the setup script:
 
 Replace `[N]` with 10, 30, or 50 based on complexity.
 
+After the script completes, it outputs a session ID. You MUST immediately output this marker:
+
+```
+ACHIEVE_SESSION: <session_id>
+```
+
+This marker enables parallel sessions in different terminal windows.
+
 ---
 
 ## STEP 4: Begin Working

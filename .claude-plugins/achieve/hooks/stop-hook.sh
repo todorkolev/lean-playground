@@ -13,14 +13,24 @@ HOOK_INPUT=$(cat)
 SESSIONS_DIR=".claude/achieve-sessions"
 INDEX_FILE="$SESSIONS_DIR/index.yaml"
 
-# Check if any achieve session is active
-if [[ ! -f "$INDEX_FILE" ]]; then
-  # No active sessions - allow exit
+# Get transcript path from hook input (needed for session detection)
+TRANSCRIPT_PATH=$(echo "$HOOK_INPUT" | jq -r '.transcript_path')
+
+if [[ ! -f "$TRANSCRIPT_PATH" ]]; then
+  # No transcript - allow exit
   exit 0
 fi
 
-# Get active session ID from index
-ACTIVE_SESSION=$(grep '^active_session:' "$INDEX_FILE" 2>/dev/null | sed 's/active_session: *//' | tr -d '"' || echo "")
+# Determine active session from transcript markers (transparent parallel support)
+# Look for ACHIEVE_SESSION markers in the transcript
+ACTIVE_SESSION=$(grep -o 'ACHIEVE_SESSION: [a-f0-9]*' "$TRANSCRIPT_PATH" 2>/dev/null | tail -1 | sed 's/ACHIEVE_SESSION: //' || echo "")
+
+if [[ -z "$ACTIVE_SESSION" ]]; then
+  # No session marker in transcript - fall back to index.yaml
+  if [[ -f "$INDEX_FILE" ]]; then
+    ACTIVE_SESSION=$(grep '^active_session:' "$INDEX_FILE" 2>/dev/null | sed 's/active_session: *//' | tr -d '"' || echo "")
+  fi
+fi
 
 if [[ -z "$ACTIVE_SESSION" ]] || [[ "$ACTIVE_SESSION" == "null" ]]; then
   # No active session - allow exit
@@ -63,13 +73,7 @@ if [[ $MAX_ITERATIONS -gt 0 ]] && [[ $ITERATION -ge $MAX_ITERATIONS ]]; then
   exit 0
 fi
 
-# Get transcript path from hook input
-TRANSCRIPT_PATH=$(echo "$HOOK_INPUT" | jq -r '.transcript_path')
-
-if [[ ! -f "$TRANSCRIPT_PATH" ]]; then
-  echo "Warning: Transcript file not found" >&2
-  exit 0
-fi
+# Transcript already validated above
 
 # Read last assistant message from transcript
 if ! grep -q '"role":"assistant"' "$TRANSCRIPT_PATH"; then
@@ -125,7 +129,7 @@ mv "$TEMP_FILE" "$LOOP_STATE_FILE"
 # Build system message
 GOAL_SUMMARY=$(grep '^goal:' "$SESSION_DIR/state.yaml" 2>/dev/null | head -1 | sed 's/goal: *//' | cut -c1-40 || echo "unknown")
 if [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
-  SYSTEM_MSG="Achieve [$ACTIVE_SESSION] iteration $NEXT_ITERATION | Goal: $goal_summary... | To complete: <promise>$COMPLETION_PROMISE</promise>"
+  SYSTEM_MSG="Achieve [$ACTIVE_SESSION] iteration $NEXT_ITERATION | Goal: $GOAL_SUMMARY... | To complete: <promise>$COMPLETION_PROMISE</promise>"
 else
   SYSTEM_MSG="Achieve [$ACTIVE_SESSION] iteration $NEXT_ITERATION | Goal: $GOAL_SUMMARY..."
 fi

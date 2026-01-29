@@ -1,0 +1,13 @@
+{
+  "name": "lean-playground",
+  "owner": {
+    "name": "Local Development"
+  },
+  "plugins": [
+    {
+      "name": "achieve",
+      "source": "./.claude-plugins/achieve",
+      "description": "Goal-driven iterative development with multi-session support"
+    }
+  ]
+}
