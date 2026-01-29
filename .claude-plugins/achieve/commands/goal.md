@@ -70,14 +70,23 @@ Complexity: [Simple/Medium/Complex] ([10/30/50] iterations)
 Creating session...
 ```
 
-Run the setup script:
+Run the setup script using Bash. You MUST substitute the actual values:
 
-```!
-"${CLAUDE_PLUGIN_ROOT}/scripts/setup-session.sh" "$ARGUMENTS" --max-iterations [N] --success-criteria "- criterion 1
-- criterion 2"
+```
+"${CLAUDE_PLUGIN_ROOT}/scripts/setup-session.sh" "<GOAL_TEXT>" --max-iterations <MAX_ITER> --success-criteria "<CRITERIA>"
 ```
 
-Replace `[N]` with 10, 30, or 50 based on complexity.
+Where:
+- `<GOAL_TEXT>` = the user's goal (escape quotes)
+- `<MAX_ITER>` = 10, 30, or 50 based on complexity
+- `<CRITERIA>` = YAML list of success criteria you extracted
+
+**Example:**
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/setup-session.sh" "Build profitable strategy" --max-iterations 50 --success-criteria "- Positive total return
+- Sharpe ratio > 0.5
+- Beats buy and hold"
+```
 
 After the script completes, it outputs a session ID. You MUST immediately output this marker:
 

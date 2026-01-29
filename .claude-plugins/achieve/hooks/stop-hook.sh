@@ -25,12 +25,8 @@ fi
 # Look for ACHIEVE_SESSION markers in the transcript
 ACTIVE_SESSION=$(grep -o 'ACHIEVE_SESSION: [a-f0-9]*' "$TRANSCRIPT_PATH" 2>/dev/null | tail -1 | sed 's/ACHIEVE_SESSION: //' || echo "")
 
-if [[ -z "$ACTIVE_SESSION" ]]; then
-  # No session marker in transcript - fall back to index.yaml
-  if [[ -f "$INDEX_FILE" ]]; then
-    ACTIVE_SESSION=$(grep '^active_session:' "$INDEX_FILE" 2>/dev/null | sed 's/active_session: *//' | tr -d '"' || echo "")
-  fi
-fi
+# No fallback to index.yaml - if no ACHIEVE_SESSION marker in transcript,
+# this is not an achieve:goal conversation and we should not interfere
 
 if [[ -z "$ACTIVE_SESSION" ]] || [[ "$ACTIVE_SESSION" == "null" ]]; then
   # No active session - allow exit

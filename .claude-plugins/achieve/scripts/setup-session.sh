@@ -88,24 +88,37 @@ sessions:
     status: active
 EOF
 else
-  # Pause current active session if any
-  CURRENT_ACTIVE=$(grep '^active_session:' "$INDEX_FILE" | sed 's/active_session: *//' | tr -d '"')
-  if [[ -n "$CURRENT_ACTIVE" ]] && [[ "$CURRENT_ACTIVE" != "null" ]]; then
-    # Mark previous as paused
-    if [[ -f "$SESSIONS_DIR/$CURRENT_ACTIVE/state.yaml" ]]; then
-      sed -i "s/status: active/status: paused/" "$SESSIONS_DIR/$CURRENT_ACTIVE/state.yaml" 2>/dev/null || true
-    fi
-  fi
-
-  # Update active session
-  sed -i "s/^active_session:.*/active_session: \"$SESSION_ID\"/" "$INDEX_FILE"
-
-  # Add new session to list
-  cat >> "$INDEX_FILE" << EOF
+  # Check if index file is valid (has active_session line)
+  if ! grep -q '^active_session:' "$INDEX_FILE" 2>/dev/null; then
+    # Index file is malformed, recreate it
+    cat > "$INDEX_FILE" << EOF
+# Achieve Sessions Index
+active_session: "$SESSION_ID"
+sessions:
   - id: "$SESSION_ID"
     created_at: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     status: active
 EOF
+  else
+    # Pause current active session if any
+    CURRENT_ACTIVE=$(grep '^active_session:' "$INDEX_FILE" | sed 's/active_session: *//' | tr -d '"')
+    if [[ -n "$CURRENT_ACTIVE" ]] && [[ "$CURRENT_ACTIVE" != "null" ]]; then
+      # Mark previous as paused
+      if [[ -f "$SESSIONS_DIR/$CURRENT_ACTIVE/state.yaml" ]]; then
+        sed -i "s/status: active/status: paused/" "$SESSIONS_DIR/$CURRENT_ACTIVE/state.yaml" 2>/dev/null || true
+      fi
+    fi
+
+    # Update active session
+    sed -i "s/^active_session:.*/active_session: \"$SESSION_ID\"/" "$INDEX_FILE"
+
+    # Add new session to list
+    cat >> "$INDEX_FILE" << EOF
+  - id: "$SESSION_ID"
+    created_at: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    status: active
+EOF
+  fi
 fi
 
 # Create session state file
