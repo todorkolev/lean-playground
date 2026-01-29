@@ -42,6 +42,18 @@ if [[ ! -f "$LOOP_STATE_FILE" ]]; then
   exit 0
 fi
 
+# Check if session is already completed (don't interfere with completed sessions)
+SESSION_STATUS=$(grep '^status:' "$SESSION_DIR/state.yaml" 2>/dev/null | sed 's/status: *//' || echo "active")
+case "$SESSION_STATUS" in
+  complete|achieved|cancelled|max_iterations_reached|failed)
+    # Session is done - clear from index if needed and allow exit
+    if [[ -f "$INDEX_FILE" ]]; then
+      sed -i 's/^active_session:.*/active_session: null/' "$INDEX_FILE" 2>/dev/null || true
+    fi
+    exit 0
+    ;;
+esac
+
 # Parse loop state (markdown with YAML frontmatter)
 FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$LOOP_STATE_FILE")
 ITERATION=$(echo "$FRONTMATTER" | grep '^iteration:' | sed 's/iteration: *//')
