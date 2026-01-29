@@ -1,5 +1,6 @@
 {
   "enabledPlugins": {
-    "ralph-wiggum@claude-code-plugins": true
+    "ralph-wiggum@claude-code-plugins": true,
+    "achieve@local": true
   }
 }

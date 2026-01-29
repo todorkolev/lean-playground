@@ -1,0 +1,10 @@
+{
+  "name": "achieve",
+  "version": "1.0.0",
+  "description": "Goal-driven iterative development with multi-session support. Achieve complex goals through buildforce phases with automatic iteration until success.",
+  "author": {
+    "name": "Local Development"
+  },
+  "commands": "./commands",
+  "hooks": "./hooks/hooks.json"
+}
