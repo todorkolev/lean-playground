@@ -1,0 +1,31 @@
+# Entry Signals Knowledge
+# Patterns for identifying good entry points
+
+id: entry-signals
+name: Entry Signal Patterns
+last_updated: "2026-01-29"
+description: "Patterns for identifying good entry points in trading strategies"
+
+entries:
+  # This file starts empty - entries will be added through /evolve.learn
+  # as the strategy-writer skill gains experience
+
+  # Example entry structure (commented out):
+  # - id: ES-001
+  #   created: "2026-01-29"
+  #   type: pattern
+  #   confidence: 0.5
+  #   validations: 0
+  #
+  #   summary: "One-line description of the pattern"
+  #   context: "When this pattern applies"
+  #   details: |
+  #     Detailed explanation of the pattern,
+  #     including implementation notes and caveats.
+  #
+  #   evidence:
+  #     - backtest: "strategy_name"
+  #       result: "Specific metric improvement"
+  #       date: "2026-01-29"
+  #
+  #   tags: [momentum, rsi, crypto]

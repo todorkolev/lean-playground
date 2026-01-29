@@ -1,0 +1,60 @@
+# Capture Patterns
+# Knowledge about how to effectively capture learnings
+
+id: capture-patterns
+name: Learning Capture Patterns
+last_updated: "2026-01-29"
+description: "Patterns for effectively capturing and structuring learnings"
+
+entries:
+  - id: CP-001
+    created: "2026-01-29"
+    type: pattern
+    confidence: 0.7
+    validations: 0
+
+    summary: "Capture the 'why' not just the 'what'"
+    context: "When recording any learning"
+    details: |
+      A learning that says "use X instead of Y" is less valuable than one that explains
+      WHY X is better. Include:
+      - What problem was encountered
+      - Why the old approach failed
+      - Why the new approach works better
+      - When this might NOT apply
+
+    tags: [meta, capture-quality]
+
+  - id: CP-002
+    created: "2026-01-29"
+    type: pattern
+    confidence: 0.7
+    validations: 0
+
+    summary: "Include concrete evidence with specific numbers"
+    context: "When capturing learnings from backtests or experiments"
+    details: |
+      Vague evidence like "performance improved" is less useful than:
+      - "Sharpe ratio improved from 0.3 to 0.8"
+      - "Drawdown reduced from 25% to 12%"
+      - "Win rate increased from 45% to 62%"
+
+      Always include the specific metric and before/after values.
+
+    tags: [meta, evidence, metrics]
+
+  - id: CP-003
+    created: "2026-01-29"
+    type: anti-pattern
+    confidence: 0.6
+    validations: 0
+
+    summary: "Avoid overly specific learnings that won't generalize"
+    context: "When abstracting from a specific situation"
+    details: |
+      Bad: "In the BTC momentum strategy on Jan 15, RSI 14 worked better than RSI 7"
+      Good: "Longer RSI periods (14+) reduce noise in high-volatility assets"
+
+      Extract the general principle, but note the specific context where it was discovered.
+
+    tags: [meta, generalization]

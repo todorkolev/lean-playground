@@ -1,0 +1,68 @@
+# Reflection Patterns
+# Knowledge about how to effectively reflect on sessions and extract learnings
+
+id: reflection-patterns
+name: Session Reflection Patterns
+last_updated: "2026-01-29"
+description: "Patterns for effective session reflection and learning extraction"
+
+entries:
+  - id: RP-001
+    created: "2026-01-29"
+    type: pattern
+    confidence: 0.7
+    validations: 0
+
+    summary: "Compare expectations vs reality to surface insights"
+    context: "When reflecting on backtest results"
+    details: |
+      Before running a backtest, there's usually an expectation:
+      - "This should have Sharpe > 1"
+      - "Drawdown should be under 20%"
+      - "Should work well in trending markets"
+
+      When reflecting:
+      1. What was expected?
+      2. What actually happened?
+      3. Why the difference?
+
+      The gap between expectation and reality is where learnings live.
+
+    tags: [reflection, backtesting, expectations]
+
+  - id: RP-002
+    created: "2026-01-29"
+    type: pattern
+    confidence: 0.7
+    validations: 0
+
+    summary: "Look for repeated patterns across multiple attempts"
+    context: "When multiple strategies or iterations have been tried"
+    details: |
+      A single data point is an observation.
+      Multiple data points showing the same pattern is a learning.
+
+      Questions to ask:
+      - Did the same issue appear in multiple strategies?
+      - Did the same fix work multiple times?
+      - Is there a common thread in what succeeded vs failed?
+
+    tags: [reflection, patterns, iteration]
+
+  - id: RP-003
+    created: "2026-01-29"
+    type: pattern
+    confidence: 0.6
+    validations: 0
+
+    summary: "Capture both what worked AND what didn't"
+    context: "When reflecting on any session"
+    details: |
+      Tendency is to only capture successes. But failures are equally valuable:
+      - What approach was tried that didn't work?
+      - Why did it fail?
+      - What would you tell your past self to avoid?
+
+      Anti-patterns prevent repeating mistakes.
+
+    tags: [reflection, failures, anti-patterns]

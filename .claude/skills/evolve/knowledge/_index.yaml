@@ -1,0 +1,33 @@
+# Evolve Skill Knowledge Index
+# This file tracks all knowledge files for the evolve skill itself
+
+id: evolve-knowledge-index
+skill: evolve
+last_updated: "2026-01-29"
+
+files:
+  - id: capture-patterns
+    path: capture-patterns.yaml
+    description: "Patterns for effectively capturing learnings"
+    entry_count: 0
+
+  - id: reflection-patterns
+    path: reflection-patterns.yaml
+    description: "Patterns for effective session reflection"
+    entry_count: 0
+
+# Schema reference for all knowledge entries
+entry_schema:
+  required:
+    - id: "string, unique within file (e.g., CP-001)"
+    - created: "date string YYYY-MM-DD"
+    - type: "enum: pattern | anti-pattern | insight"
+    - confidence: "float 0.0-1.0, starts at 0.5"
+    - summary: "string, one-line description"
+  optional:
+    - context: "string, when/why this applies"
+    - details: "string, multi-line elaboration"
+    - evidence: "array of {source, result, date}"
+    - tags: "array of strings for search"
+    - validations: "int, times proven correct"
+    - contradictions: "int, times proven wrong"

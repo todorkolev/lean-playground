@@ -1,6 +1,4 @@
 {
-  "model": "opus",
-  "alwaysThinkingEnabled": true,
   "permissions": {
     "allow": [
       "Bash",
@@ -9,7 +7,14 @@
       "NotebookEdit",
       "WebFetch",
       "WebSearch",
-      "Mcp"
+      "Mcp",
+      "Skill(ralph-wiggum:ralph-loop)"
     ]
-  }
+  },
+  "model": "opus",
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "context7"
+  ],
+  "alwaysThinkingEnabled": true
 }

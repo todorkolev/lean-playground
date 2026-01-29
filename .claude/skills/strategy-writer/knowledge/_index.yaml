@@ -1,0 +1,35 @@
+# Strategy Writer Knowledge Index
+# This file tracks all knowledge files for the strategy-writer skill
+
+id: strategy-writer-knowledge-index
+skill: strategy-writer
+last_updated: "2026-01-29"
+
+files:
+  - id: entry-signals
+    path: entry-signals.yaml
+    description: "Patterns for identifying good entry points"
+    entry_count: 0
+
+  - id: exit-rules
+    path: exit-rules.yaml
+    description: "Patterns for exit timing and rules"
+    entry_count: 0
+
+  - id: risk-management
+    path: risk-management.yaml
+    description: "Position sizing, stops, and risk control"
+    entry_count: 0
+
+  - id: mistakes
+    path: mistakes.yaml
+    description: "Anti-patterns and common mistakes to avoid"
+    entry_count: 0
+
+# Tags used across entries for filtering
+common_tags:
+  strategy_type: [momentum, mean-reversion, breakout, trend-following, pairs]
+  asset_class: [equity, crypto, forex, futures]
+  timeframe: [intraday, daily, weekly, monthly]
+  indicators: [rsi, macd, sma, ema, bollinger, atr, volume]
+  concepts: [entry, exit, stops, sizing, filters, regime]

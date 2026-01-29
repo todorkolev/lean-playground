@@ -1,0 +1,21 @@
+# Mistakes Knowledge
+# Anti-patterns and common mistakes to avoid
+
+id: mistakes
+name: Common Mistakes (Anti-patterns)
+last_updated: "2026-01-29"
+description: "Anti-patterns and common mistakes to avoid when writing strategies"
+
+entries:
+  # This file starts empty - entries will be added through /evolve.learn
+  # as the strategy-writer skill gains experience
+
+  # Common mistake categories to watch for:
+  # - Overfitting to historical data
+  # - Look-ahead bias
+  # - Survivorship bias
+  # - Ignoring transaction costs
+  # - Ignoring slippage
+  # - Over-leveraging
+  # - No stop losses
+  # - Too many parameters

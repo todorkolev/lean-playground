@@ -1,0 +1,18 @@
+# Exit Rules Knowledge
+# Patterns for exit timing and rules
+
+id: exit-rules
+name: Exit Rules Patterns
+last_updated: "2026-01-29"
+description: "Patterns for determining when and how to exit positions"
+
+entries:
+  # This file starts empty - entries will be added through /evolve.learn
+  # as the strategy-writer skill gains experience
+
+  # Common exit approaches to consider:
+  # - Time-based exits (hold for N bars)
+  # - Target-based exits (take profit at X%)
+  # - Trailing stops (dynamic stop that follows price)
+  # - Signal-based exits (exit when entry signal reverses)
+  # - Volatility-based exits (ATR-based stops)
