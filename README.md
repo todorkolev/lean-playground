@@ -52,6 +52,7 @@ The `lp` command is the primary interface. No authentication required.
 | `lp create <name>` | Create a new project from template |
 | `lp create <name> --from <Example>` | Create from a Lean algorithm example |
 | `lp browse [keyword]` | Browse ~500 algorithm examples |
+| `lp download [options]` | Download historical data from exchanges |
 | `lp jupyter` | Restart Jupyter Lab (auto-starts with container) |
 | `lp status` | Show workspace and engine status |
 
@@ -91,6 +92,28 @@ lp browse macd         # Search by keyword
 lp create algorithms/macd_trend --from MACDTrendAlgorithm
 lp backtest algorithms/macd_trend
 ```
+
+### Downloading Historical Data
+
+Download OHLCV data from Binance directly to the Lean data directory:
+
+```bash
+# Download last 10 days of BTCUSDT (default: 1m and 1h intervals)
+lp download --symbols BTCUSDT
+
+# Download multiple symbols and intervals
+lp download --symbols BTCUSDT ETHUSDT --intervals 1m 1h 1d --days 30
+
+# Download specific date range
+lp download --symbols BTCUSDT --start-date 2024-01-01 --end-date 2024-03-01
+
+# Download futures data (for cryptofuture asset class)
+lp download --symbols BTCUSDT --account-type usdt_future
+```
+
+**Supported intervals:** `1s`, `1m`, `3m`, `5m`, `15m`, `30m`, `1h`, `2h`, `4h`, `6h`, `8h`, `12h`, `1d`, `3d`, `1w`
+
+**Data source:** Downloads from Binance's public data archive (data.binance.vision) with no API key required. The archive provides historical data without rate limits.
 
 ### Research Environment
 

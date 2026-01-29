@@ -9,11 +9,13 @@ Usage:
     lp backtest <project>              Run a backtest
     lp create <name> [--from REF]      Create a new algorithm project
     lp browse [keyword]                Browse algorithm examples
+    lp download [options]              Download historical data
     lp jupyter [--port PORT]           Start Jupyter Lab
     lp status                          Show workspace status
 """
 
 import argparse
+import logging
 import sys
 from pathlib import Path
 
@@ -55,6 +57,44 @@ def _cmd_status(args: argparse.Namespace) -> int:
 
     print_status()
     return 0
+
+
+def _cmd_download(args: argparse.Namespace) -> int:
+    import asyncio
+    from lean_playground.download import download_data
+
+    # Set up logging
+    log_level = getattr(logging, args.log_level.upper(), logging.INFO)
+    logging.basicConfig(
+        level=log_level,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+
+    try:
+        result = asyncio.run(
+            download_data(
+                symbols=args.symbols,
+                intervals=args.intervals,
+                exchange=args.exchange,
+                days=args.days,
+                start_date=args.start_date,
+                end_date=args.end_date,
+                account_type=args.account_type,
+                testnet=args.testnet,
+            )
+        )
+
+        # Print summary
+        total_files = sum(len(files) for files in result.values())
+        print(f"\nDownload complete: {total_files} file(s) written")
+        for symbol, files in result.items():
+            if files:
+                print(f"  {symbol}: {len(files)} file(s)")
+
+        return 0
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
 
 
 def main() -> int:
@@ -125,6 +165,83 @@ def main() -> int:
         help="Show workspace status",
     )
     p_status.set_defaults(func=_cmd_status)
+
+    # download
+    p_download = subparsers.add_parser(
+        "download",
+        help="Download historical data from exchanges to Lean format",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""Download historical OHLCV data from Binance or Bybit.
+
+Data is written in QuantConnect Lean format to /Lean/Data for use with backtests.
+
+Examples:
+    lp download --symbols BTCUSDT                     # Last 10 days, 1m and 1h
+    lp download --symbols BTCUSDT ETHUSDT --days 30   # Multiple symbols
+    lp download --symbols BTCUSDT --intervals 1d     # Daily data only
+    lp download --symbols BTCUSDT --start-date 2024-01-01
+    lp download --symbols BTCUSDT --account-type usdt_future  # Futures data
+""",
+    )
+    p_download.add_argument(
+        "--symbols",
+        type=str,
+        nargs="+",
+        default=["BTCUSDT"],
+        help="Symbols to download (default: BTCUSDT)",
+    )
+    p_download.add_argument(
+        "--intervals",
+        type=str,
+        nargs="+",
+        default=["1m", "1h"],
+        help="Intervals to download (default: 1m 1h). Options: 1s, 1m, 5m, 15m, 30m, 1h, 4h, 1d",
+    )
+    p_download.add_argument(
+        "--exchange",
+        type=str,
+        default="binance",
+        choices=["binance"],
+        help="Exchange to download from (default: binance)",
+    )
+    p_download.add_argument(
+        "--days",
+        type=int,
+        default=10,
+        help="Days of data to download if no dates specified (default: 10)",
+    )
+    p_download.add_argument(
+        "--start-date",
+        type=str,
+        default=None,
+        help="Start date (YYYY-MM-DD)",
+    )
+    p_download.add_argument(
+        "--end-date",
+        type=str,
+        default=None,
+        help="End date (YYYY-MM-DD)",
+    )
+    p_download.add_argument(
+        "--account-type",
+        type=str,
+        default="spot",
+        choices=["spot", "margin", "usdt_future", "coin_future"],
+        help="Account type (default: spot). Use usdt_future for perpetual futures.",
+    )
+    p_download.add_argument(
+        "--testnet",
+        action="store_true",
+        help="Use testnet endpoints",
+    )
+    p_download.add_argument(
+        "--log-level",
+        type=str,
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        help="Logging level (default: INFO)",
+    )
+    p_download.set_defaults(func=_cmd_download)
 
     args = parser.parse_args()
     return args.func(args)

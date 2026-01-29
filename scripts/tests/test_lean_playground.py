@@ -205,3 +205,84 @@ class TestEngineAvailability:
 
     def test_dotnet_available(self):
         assert shutil.which("dotnet"), "dotnet runtime not found on PATH"
+
+
+# ---------------------------------------------------------------------------
+# lean_writer.py tests
+# ---------------------------------------------------------------------------
+
+class TestLeanWriter:
+    """Tests for Lean data writer."""
+
+    def test_resolution_from_interval(self):
+        from lean_playground.lean_writer import Resolution
+
+        assert Resolution.from_interval("1m") == Resolution.MINUTE
+        assert Resolution.from_interval("1h") == Resolution.HOUR
+        assert Resolution.from_interval("1d") == Resolution.DAILY
+        assert Resolution.from_interval("4h") == Resolution.HOUR
+
+    def test_write_daily_bars(self, tmp_path):
+        from datetime import datetime
+        from lean_playground.lean_writer import (
+            LeanDataWriter,
+            BarData,
+            Resolution,
+            AssetClass,
+        )
+
+        writer = LeanDataWriter(tmp_path)
+        bars = [
+            BarData(datetime(2024, 1, 1), 100.0, 105.0, 99.0, 103.0, 1000.0),
+            BarData(datetime(2024, 1, 2), 103.0, 108.0, 102.0, 106.0, 1200.0),
+        ]
+
+        files = writer.write_bars(
+            bars,
+            symbol="BTCUSDT",
+            market="binance",
+            resolution=Resolution.DAILY,
+            asset_class=AssetClass.CRYPTO,
+        )
+
+        assert len(files) == 1
+        assert files[0].exists()
+        assert "crypto/binance/daily" in str(files[0])
+
+    def test_write_minute_bars(self, tmp_path):
+        from datetime import datetime
+        from lean_playground.lean_writer import (
+            LeanDataWriter,
+            BarData,
+            Resolution,
+            AssetClass,
+        )
+
+        writer = LeanDataWriter(tmp_path)
+        bars = [
+            BarData(datetime(2024, 1, 1, 0, 0), 100.0, 105.0, 99.0, 103.0, 1000.0),
+            BarData(datetime(2024, 1, 1, 0, 1), 103.0, 108.0, 102.0, 106.0, 1200.0),
+        ]
+
+        files = writer.write_bars(
+            bars,
+            symbol="BTCUSDT",
+            market="binance",
+            resolution=Resolution.MINUTE,
+            asset_class=AssetClass.CRYPTO,
+        )
+
+        assert len(files) == 1
+        assert files[0].exists()
+        assert "crypto/binance/minute/btcusdt" in str(files[0])
+
+
+class TestBinanceClient:
+    """Tests for Binance client."""
+
+    def test_kline_intervals_valid(self):
+        from lean_playground.binance_client import KLINE_INTERVALS
+
+        assert "1m" in KLINE_INTERVALS
+        assert "1h" in KLINE_INTERVALS
+        assert "1d" in KLINE_INTERVALS
