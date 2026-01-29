@@ -1,14 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Bash",
+      "Bash(*)",
       "Edit",
       "Write",
       "NotebookEdit",
       "WebFetch",
       "WebSearch",
       "Mcp",
-      "Skill(ralph-wiggum:ralph-loop)"
+      "Skill(*)",
+      "mcp__*",
+      "Task"
     ]
   },
   "model": "opus",
