@@ -333,59 +333,102 @@ class BinanceClient:
     ) -> List[BarData]:
         """Download kline data from archive for a date range.
 
-        Tries daily files first, then falls back to monthly files,
-        and optionally falls back to API for recent data.
+        For daily+ intervals (1d, 3d, 1w, 1M), downloads monthly files directly
+        since each daily file only contains 1 bar. For sub-daily intervals,
+        tries daily files first, then falls back to monthly files.
+        Optionally falls back to API for recent data not yet in archives.
         """
         all_bars = []
         current_date = start_time.replace(hour=0, minute=0, second=0, microsecond=0)
         end_date = end_time.replace(hour=0, minute=0, second=0, microsecond=0)
 
+        # For daily+ intervals, skip daily files entirely - they only have 1 bar each
+        # Monthly archives are much more efficient (12 requests/year vs 365)
+        use_monthly_only = interval in ("1d", "3d", "1w", "1M")
+
         # Track which months we've already downloaded and days without archive data
         downloaded_months = set()
         missing_days = []
 
-        while current_date <= end_date:
-            year = current_date.year
-            month = current_date.month
-            day = current_date.day
+        if use_monthly_only:
+            # Iterate by month instead of by day for efficiency
+            current_month = current_date.replace(day=1)
+            end_month = end_date.replace(day=1)
 
-            # Try daily file first
-            bars = await self.download_from_archive(
-                symbol=symbol,
-                interval=interval,
-                year=year,
-                month=month,
-                day=day,
-            )
-
-            if bars:
-                # Filter to requested range
-                bars = [b for b in bars if start_time <= b.timestamp <= end_time]
-                all_bars.extend(bars)
-                logger.info(f"  Downloaded {len(bars)} bars from archive for {current_date.strftime('%Y-%m-%d')}")
-            else:
-                # Try monthly file if we haven't already
+            while current_month <= end_month:
+                year = current_month.year
+                month = current_month.month
                 month_key = (year, month)
-                if month_key not in downloaded_months:
-                    monthly_bars = await self.download_from_archive(
-                        symbol=symbol,
-                        interval=interval,
-                        year=year,
-                        month=month,
-                    )
-                    if monthly_bars:
-                        # Filter to requested range
-                        monthly_bars = [
-                            b for b in monthly_bars if start_time <= b.timestamp <= end_time
-                        ]
-                        all_bars.extend(monthly_bars)
-                        downloaded_months.add(month_key)
-                        logger.info(f"  Downloaded {len(monthly_bars)} bars from monthly archive for {year}-{month:02d}")
-                    else:
-                        # Mark this day as missing from archive
-                        missing_days.append(current_date)
 
-            current_date += timedelta(days=1)
+                monthly_bars = await self.download_from_archive(
+                    symbol=symbol,
+                    interval=interval,
+                    year=year,
+                    month=month,
+                )
+                if monthly_bars:
+                    # Filter to requested range
+                    monthly_bars = [
+                        b for b in monthly_bars if start_time <= b.timestamp <= end_time
+                    ]
+                    all_bars.extend(monthly_bars)
+                    downloaded_months.add(month_key)
+                    logger.info(f"  Downloaded {len(monthly_bars)} bars from monthly archive for {year}-{month:02d}")
+                else:
+                    # Mark all days in this month as missing
+                    day = current_month
+                    next_month = (current_month.replace(day=28) + timedelta(days=4)).replace(day=1)
+                    while day < next_month and day <= end_date:
+                        if day >= current_date:
+                            missing_days.append(day)
+                        day += timedelta(days=1)
+
+                # Move to next month
+                current_month = (current_month.replace(day=28) + timedelta(days=4)).replace(day=1)
+        else:
+            # For sub-daily intervals, iterate by day
+            while current_date <= end_date:
+                year = current_date.year
+                month = current_date.month
+                day = current_date.day
+
+                # Try daily file first
+                bars = await self.download_from_archive(
+                    symbol=symbol,
+                    interval=interval,
+                    year=year,
+                    month=month,
+                    day=day,
+                )
+
+                if bars:
+                    # Filter to requested range
+                    bars = [b for b in bars if start_time <= b.timestamp <= end_time]
+                    all_bars.extend(bars)
+                    logger.info(f"  Downloaded {len(bars)} bars from archive for {current_date.strftime('%Y-%m-%d')}")
+                else:
+                    # Try monthly file if we haven't already
+                    month_key = (year, month)
+                    if month_key not in downloaded_months:
+                        monthly_bars = await self.download_from_archive(
+                            symbol=symbol,
+                            interval=interval,
+                            year=year,
+                            month=month,
+                        )
+                        if monthly_bars:
+                            # Filter to requested range
+                            monthly_bars = [
+                                b for b in monthly_bars if start_time <= b.timestamp <= end_time
+                            ]
+                            all_bars.extend(monthly_bars)
+                            downloaded_months.add(month_key)
+                            logger.info(f"  Downloaded {len(monthly_bars)} bars from monthly archive for {year}-{month:02d}")
+                        else:
+                            # Mark this day as missing from archive
+                            missing_days.append(current_date)
+
+                current_date += timedelta(days=1)
 
         # Fall back to API for missing days
         if missing_days and fallback_to_api:

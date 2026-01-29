@@ -13,12 +13,16 @@ from lean_playground import LEAN_LAUNCHER_DIR, LEAN_LAUNCHER_DLL, RESULTS_DIR
 from lean_playground.config import build_backtest_config, write_config
 
 
-def run_backtest(project_path: Path) -> int:
+def run_backtest(
+    project_path: Path,
+    parameters: dict[str, str] | None = None,
+) -> int:
     """Run a backtest for the given algorithm project.
 
     Args:
         project_path: Path to the algorithm project directory.
             Must contain a main.py file.
+        parameters: Optional dictionary of algorithm parameters.
 
     Returns:
         The engine process exit code (0 = success).
@@ -49,7 +53,7 @@ def run_backtest(project_path: Path) -> int:
     results_dir = RESULTS_DIR / project_name / timestamp
     results_dir.mkdir(parents=True, exist_ok=True)
 
-    config = build_backtest_config(algorithm_file, results_dir)
+    config = build_backtest_config(algorithm_file, results_dir, parameters=parameters)
     config_path = write_config(config)
 
     print(f"Project:  {project_name}")

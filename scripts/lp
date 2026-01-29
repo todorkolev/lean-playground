@@ -24,7 +24,19 @@ def _cmd_backtest(args: argparse.Namespace) -> int:
     from lean_playground.backtest import run_backtest
 
     project_path = Path(args.project)
-    return run_backtest(project_path)
+    parameters = _parse_parameters(args.params) if args.params else None
+    return run_backtest(project_path, parameters=parameters)
+
+
+def _parse_parameters(params: list[str]) -> dict[str, str]:
+    """Parse key=value parameter pairs into a dict."""
+    result = {}
+    for param in params:
+        if "=" not in param:
+            raise ValueError(f"Invalid parameter format: {param}. Use key=value.")
+        key, value = param.split("=", 1)
+        result[key] = value
+    return result
 
 
 def _cmd_create(args: argparse.Namespace) -> int:
@@ -112,6 +124,13 @@ def main() -> int:
     p_backtest.add_argument(
         "project",
         help="Path to the algorithm project directory (e.g., algorithms/sample_sma_crossover)",
+    )
+    p_backtest.add_argument(
+        "-p", "--param",
+        dest="params",
+        action="append",
+        metavar="KEY=VALUE",
+        help="Algorithm parameter (can be repeated). E.g., -p symbol=SPY -p asset_type=equity",
     )
     p_backtest.set_defaults(func=_cmd_backtest)
 

@@ -53,6 +53,7 @@ def build_backtest_config(
     *,
     data_dir: Path | None = None,
     extra_python_paths: list[str] | None = None,
+    parameters: dict[str, str] | None = None,
 ) -> dict:
     """Build a complete engine config for a Python backtest.
 
@@ -62,6 +63,8 @@ def build_backtest_config(
         data_dir: Market data directory. Defaults to /Lean/Data.
         extra_python_paths: Additional Python import paths beyond the
             algorithm's parent directory.
+        parameters: Dictionary of algorithm parameters to pass via
+            self.get_parameter() in the algorithm.
 
     Returns:
         A dict suitable for JSON serialization as the engine config.
@@ -94,6 +97,10 @@ def build_backtest_config(
         "composer-dll-directory": str(LEAN_LAUNCHER_DIR),
         "python-additional-paths": python_paths,
     })
+
+    if parameters:
+        config["parameters"] = parameters
+
     return config
 
 
