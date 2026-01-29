@@ -23,6 +23,8 @@ Look for these patterns in the goal:
 - "returns X", "outputs Y" → Specific output expected
 - "without errors", "no crashes" → Error-free execution
 - "complete", "implemented", "added" → Feature exists and is functional
+- "profitable", "profitability" → Positive returns, good Sharpe ratio
+- "minimum risk", "low risk" → Low drawdown, low volatility
 
 Extract ALL success criteria found. If multiple criteria exist, ALL must be met.
 
@@ -44,6 +46,7 @@ Examples where you should NOT ask (criteria are clear):
 - "Fix the login bug" → Success = login works without the bug
 - "Make tests pass" → Success = all tests pass
 - "Build a feature with X" → Success = feature X works
+- "Improve strategy for profitability" → Success = better metrics than baseline
 
 Examples where you SHOULD ask:
 - "Improve the homepage" → What improvement? Performance? Design? Content?
@@ -57,7 +60,6 @@ If criteria are NOT clear:
 → Use AskUserQuestion tool with a single focused question:
   - Question: "What would indicate this goal is achieved?"
   - Provide 2-4 concrete options based on the goal context
-  - Example options: "All tests pass", "Performance < 100ms", "Feature X works"
 
 ---
 
@@ -93,61 +95,78 @@ attempts: []
 
 ---
 
-## STEP 4: Start the Achieve Loop
+## STEP 4: Create the Loop Protocol File
 
-Now start the ralph-wiggum loop with this prompt:
+Write the following to `.claude/.achieve-loop-protocol.md`:
 
-```
-/ralph-wiggum:ralph-loop "You are working toward a goal. Read .claude/.achieve-state.yaml for the goal and criteria. Follow the ACHIEVE LOOP PROTOCOL below.
+```markdown
+# Achieve Loop Protocol
 
-ACHIEVE LOOP PROTOCOL:
+Read `.claude/.achieve-state.yaml` for the goal and success criteria.
 
-1. READ STATE
-   - Check .claude/.achieve-state.yaml for goal, criteria, phase
-   - Check .buildforce/buildforce.json for session state
-   - Check .buildforce/sessions/*/plan.yaml for progress
+## Each Iteration
 
-2. ROUTE BY PHASE
+### 1. READ STATE
+- Check `.claude/.achieve-state.yaml` for goal, criteria, phase
+- Check `.buildforce/buildforce.json` for session state
+- Check `.buildforce/sessions/*/plan.yaml` for progress
 
-   A. phase=research (no buildforce session):
-      → Run /buildforce.research with the goal
-      → Update phase to 'plan' in state file
+### 2. ROUTE BY PHASE
 
-   B. phase=plan (research done, no plan):
-      → Run /buildforce.plan to create implementation plan
-      → Update phase to 'build' in state file
+**A. phase=research** (no buildforce session):
+→ Run `/buildforce.research` with the goal
+→ Update phase to 'plan' in state file
 
-   C. phase=build (plan exists):
-      → Run /buildforce.build to implement
-      → After build completes, update phase to 'validate'
+**B. phase=plan** (research done, no plan):
+→ Run `/buildforce.plan` to create implementation plan
+→ Update phase to 'build' in state file
 
-   D. phase=validate (build complete):
-      → Test against each success criterion
-      → If ALL criteria pass:
-         - Run /buildforce.complete
-         - Output: <promise>ACHIEVED</promise>
-      → If ANY criterion fails:
-         - Log attempt in state file
-         - Update phase back to 'build'
-         - Analyze failure and plan fix
+**C. phase=build** (plan exists):
+→ Run `/buildforce.build` to implement
+→ After build completes, update phase to 'validate'
 
-3. LOG ATTEMPTS
-   After each validation, add to attempts in state file:
-   ```yaml
-   attempts:
-     - iteration: N
-       result: pass/fail
-       details: what worked/failed
-   ```
+**D. phase=validate** (build complete):
+→ Test against each success criterion from the state file
+→ If ALL criteria pass:
+   - Run `/buildforce.complete`
+   - Output: `<promise>ACHIEVED</promise>`
+→ If ANY criterion fails:
+   - Log attempt in state file under `attempts:`
+   - Update phase back to 'build'
+   - Analyze failure and plan fix
 
-4. COMPLETION
-   When ALL success criteria are met:
-   - Summarize what was accomplished
-   - Output: <promise>ACHIEVED</promise>
-" --max-iterations [10/30/50] --completion-promise "ACHIEVED"
+### 3. LOG ATTEMPTS
+After each validation, add to attempts in state file:
+```yaml
+attempts:
+  - iteration: N
+    result: pass/fail
+    details: what worked/failed
 ```
 
-Replace `[10/30/50]` with the complexity-based iteration count.
+### 4. COMPLETION
+When ALL success criteria are met:
+- Summarize what was accomplished
+- Output: `<promise>ACHIEVED</promise>`
+
+### 5. MAX ITERATIONS
+If max iterations reached without full success:
+- Summarize progress made
+- List remaining criteria not met
+- Output: `<promise>ACHIEVED - PARTIAL</promise>`
+```
+
+---
+
+## STEP 5: Start the Achieve Loop
+
+Now start the ralph-wiggum loop with a SHORT prompt that references the file:
+
+```
+/ralph-wiggum:ralph-loop "Read and follow .claude/.achieve-loop-protocol.md exactly. Goal state is in .claude/.achieve-state.yaml." --max-iterations [N] --completion-promise "ACHIEVED"
+```
+
+Replace `[N]` with the complexity-based iteration count (10, 30, or 50).
 
 ---
 
@@ -158,25 +177,3 @@ Replace `[10/30/50]` with the complexity-based iteration count.
 3. **Log failures**: Track what was tried to avoid repeating mistakes
 4. **Simplify on failure**: If something isn't working after several attempts, try a simpler approach
 5. **Be honest**: If a criterion can't be validated automatically, note it
-
----
-
-## FAILURE HANDLING
-
-If max iterations reached without success:
-
-```
-GOAL NOT FULLY ACHIEVED ([N] iterations)
-
-Goal: [goal]
-
-Progress:
-- [What was accomplished]
-
-Remaining:
-- [What criteria still not met]
-
-Suggestion: [What to try next]
-
-<promise>ACHIEVED - PARTIAL</promise>
-```
