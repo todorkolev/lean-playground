@@ -1,0 +1,195 @@
+version: "0.0.40"
+id: sr-levels-20260128142300
+name: "Support/Resistance Level Trading Strategy"
+type: feature
+status: completed
+created: "2026-01-28"
+last_updated: "2026-01-28"
+
+summary: |
+  A trading strategy that identifies support and resistance levels using zigzag pivot detection,
+  enters positions when price reaches these levels, pyramids in the trend direction, and uses
+  a hybrid exit system combining Chandelier Exit (ATR-based trailing stop), Time-Based Exit
+  (max holding period), and Breakeven Stop for bounded risk with trend-following capability.
+
+  Phase 7 adds All-Weather Regime Adaptation: ADX regime detection (trending/ranging), 50 SMA
+  trend filter, +DI/-DI directional bias, volatility-based position sizing, and dynamic ATR
+  multiplier for profitable performance across different market conditions.
+
+# INTENT / PROBLEM STATEMENT
+
+problem: |
+  Manual identification of support and resistance levels is time-consuming and subjective.
+  Traders need an automated system that can detect these levels, manage position entry/exit
+  based on level touches, and handle position sizing with proper risk controls. Additionally,
+  profit-only exits (FR8) cause indefinite holding of losing positions, resulting in unbounded
+  risk and large drawdowns when positions never reach profitable exit points.
+
+motivation: |
+  Support and resistance levels are fundamental to technical analysis. A systematic approach
+  to trading these levels with pyramiding can capture extended moves while the profit-only
+  exit rule protects against premature exits during adverse price movements. This strategy
+  combines level detection, trend-following pyramiding, and disciplined risk management.
+
+# GOALS
+
+primary_goals:
+  - Automatically detect support and resistance levels from historical price data
+  - Enter positions when price touches detected levels (long at support, short at resistance)
+  - Pyramid positions in the trend direction at subsequent level touches
+  - Exit positions profitably at opposite level type OR via hybrid exit system for bounded risk
+  - Implement volatility-adaptive risk management using ATR-based trailing stops
+
+secondary_goals:
+  - Implement configurable parameters for level detection sensitivity
+  - Provide visualization of detected levels during backtesting
+  - Track position state and pyramiding history for analysis
+
+# REQUIREMENTS
+
+functional_requirements:
+  - FR1: Detect pivot points using zigzag algorithm with configurable threshold (default 5%)
+  - FR2: Cluster nearby pivot prices into discrete support/resistance levels
+  - FR3: Classify levels as SUPPORT (from lows) or RESISTANCE (from highs)
+  - FR4: Generate entry signal when price touches a support level (go long) or resistance level (go short)
+  - FR5: Pyramid existing positions when price touches another level in the same direction
+  - FR6: Track margin utilization and stop new entries when max_margin_percent exceeded (default 50%)
+  - FR7: Generate exit signal only when position is profitable AND price reaches opposite level type
+  - FR8: Hold position if at opposite level but not profitable (no forced exit at loss)
+  - FR9: Recalculate levels on each bar with configurable data resolution
+  - FR10: Plot detected support/resistance levels on backtest charts
+  - FR11: Support configurable position sizing (initial entry % and pyramid step %)
+  - FR12: Support multiple data resolutions (daily, hourly, minute) via parameter
+  - FR13: Implement Chandelier Exit using ATR-based trailing stop (Long Stop = Highest High(n) - ATR(n) × multiplier)
+  - FR14: Implement Time-Based Exit to close positions after max_hold_bars (default 30 for daily)
+  - FR15: Implement Breakeven Stop that moves stop to entry price when profit exceeds threshold
+  - FR16: Track exit state including entry_bar, highest/lowest since entry, and current stop level
+  - FR17: Make all exit parameters configurable (atr_period, atr_multiplier, max_hold_bars, breakeven_threshold)
+  - FR18: Exit checks priority: Profit at level > Chandelier stop > Time-based exit
+  - FR19: Implement TouchScorer to score level quality (+2 for price touches, -2 for price cuts through level)
+  - FR20: Track touch and cut counts for each detected level
+  - FR21: Filter entry signals to only trade levels with score >= min_level_score threshold
+  - FR22: Make min_level_score configurable (default 0 to allow all levels)
+  # Phase 7: All-Weather Regime Adaptation
+  - FR23: Implement ADX regime detection (>25 = trending, <20 = ranging, 20-25 = transitional)
+  - FR24: Implement SMA trend filter (price > 50 SMA = bullish, price < 50 SMA = bearish)
+  - FR25: Use +DI/-DI from ADX for directional bias (+DI > -DI = bullish momentum, -DI > +DI = bearish)
+  - FR26: Implement volatility-based position sizing (Risk$ / (ATR × Multiplier))
+  - FR27: Implement dynamic ATR multiplier by regime (2.0 ranging, 3.5 trending, 4.0 volatile)
+  - FR28: Support long-only mode option that disables short entries regardless of signals
+  - FR29: Combine regime and direction filters to determine allowed trade direction
+  - FR30: Track market regime and log regime transitions for analysis
+
+non_functional_requirements:
+  - NFR1: Level detection must complete within on_data() time constraints (< 100ms per bar)
+  - NFR2: Strategy must be compatible with Lean's QCAlgorithm framework
+  - NFR3: Code must follow project conventions (snake_case methods, Google docstrings, type hints)
+  - NFR4: Strategy parameters must be configurable without code changes
+
+# SCOPE
+
+in_scope:
+  - Support/resistance level detection using zigzag pivots
+  - Level clustering and classification (support vs resistance)
+  - Entry logic at level touches
+  - Pyramiding logic for same-direction level touches
+  - Margin utilization tracking and entry blocking
+  - Profit-only exit logic at opposite levels
+  - Hybrid exit system (Chandelier Exit + Time-Based Exit + Breakeven Stop)
+  - ATR-based trailing stop calculation using Lean indicators
+  - Exit state tracking for position monitoring
+  - Basic chart plotting of levels and exit stops
+  - TouchScorer level quality scoring (+2 touches, -2 cuts)
+  - Configurable minimum level score threshold for entry filtering
+  - Backtest validation with SPY daily data
+
+out_of_scope:
+  - Live trading integration (backtest only for this iteration)
+  - Multiple symbol support (single symbol for now)
+  - Trendline detection (using horizontal levels only)
+  - Commission/slippage modeling beyond Lean defaults
+
+# DESIGN PRINCIPLES
+
+design_principles:
+  - "Separation of concerns: Level detection, signal generation, and position management are distinct modules"
+  - "Fail-safe defaults: If level detection fails, no trades are taken"
+  - "Explicit state: Position direction and pyramid state are always clearly defined"
+  - "Configurable parameters: All magic numbers are exposed as strategy parameters"
+
+# ACCEPTANCE CRITERIA
+
+acceptance_criteria:
+  - AC1: Strategy successfully runs a backtest on SPY 2020-2023 without errors
+  - AC2: Support and resistance levels are correctly identified and plotted on charts
+  - AC3: Long positions are opened only at support levels, short positions only at resistance
+  - AC4: Pyramiding occurs only when margin limit is not exceeded
+  - AC5: Profitable exits occur at opposite level when profit exceeds threshold
+  - AC6: Chandelier stop triggers exit when price crosses ATR-based trailing stop level
+  - AC7: Time-based exit triggers after max_hold_bars regardless of profit/loss
+  - AC8: Breakeven stop activates when unrealized profit exceeds breakeven_threshold
+  - AC9: No position is held indefinitely - all positions eventually exit via one of the exit mechanisms
+  - AC10: Strategy produces backtest results with bounded drawdown (improved vs FR8-only approach)
+  - AC11: TouchScorer correctly increments touch_count when price respects level and cut_count when price breaks through
+  - AC12: Entry signals are filtered to only trade levels with score >= min_level_score threshold
+  # Phase 7: All-Weather acceptance criteria
+  - AC13: ADX regime detection correctly classifies market as trending/ranging/transitional
+  - AC14: Trend filter blocks short entries above SMA and long entries below SMA
+  - AC15: Direction filter uses +DI/-DI to confirm momentum alignment
+  - AC16: Volatility-based position sizing produces smaller positions in high-volatility regimes
+  - AC17: Strategy produces positive returns on both BTC (bull market) and SPY (mixed market) data
+  - AC18: No short positions entered when long-only mode is enabled
+
+# ASSUMPTIONS & DEPENDENCIES
+
+assumptions:
+  - Daily resolution data provides sufficient signal for level detection
+  - Zigzag threshold of 2-5% is appropriate for SPY
+  - Level merge distance of 0.5-1% groups similar prices effectively
+  - Horizontal levels (not trendlines) capture key price zones
+
+dependencies:
+  internal:
+    - algorithms/sample_sma_crossover/main.py: "Reference implementation pattern"
+    - scripts/lean_playground/templates/main.py.template: "Project template structure"
+  external:
+    - zigzag: "==0.2.2 - Pivot detection algorithm"
+    - numpy: "Array operations for level calculations"
+    - pandas: "Data manipulation (available via Lean)"
+
+# OPEN QUESTIONS
+
+open_questions: []  # All questions resolved
+
+# RESOLVED DECISIONS
+resolved_questions:
+  - Q1: "Zigzag threshold: 5% default (configurable via parameter)"
+  - Q2: "Trade direction: Both long and short (long at support, short at resistance)"
+  - Q3: "Max margin: 50% default (configurable via parameter)"
+  - Q4: "Level recalculation: Each bar, with configurable resolution support"
+  - Q5: "Position sizing: Fixed total allocation with configurable steps (e.g., initial 30%, pyramids 20%)"
+  - Q6: "Exit system: Hybrid approach with Chandelier Exit (primary) + Time-Based Exit (safety net) + Breakeven Stop"
+  - Q7: "Chandelier parameters: ATR period=22, multiplier=3.0 (balanced, configurable)"
+  - Q8: "Time-based exit: max_hold_bars=30 for daily resolution (safety net for sideways markets)"
+  - Q9: "Breakeven threshold: 1.0% default (move stop to entry when profit exceeds threshold)"
+  - Q10: "Exit priority: Profit at level > Chandelier stop > Time-based exit"
+
+# NOTES
+
+notes: |
+  Research findings indicate zigzag 0.2.2 is now installed and functional.
+  The pytrendline library was evaluated but rejected due to O(N³) complexity.
+
+  TouchScorer (Phase 6):
+  - Level quality scoring: +2 for touches (price respects level), -2 for cuts (price breaks through)
+  - Implemented in _is_touch(), _is_cut(), _update_level_scores() methods
+  - Configurable min_level_score parameter filters low-quality levels
+  - Score property on PriceLevel: (touch_count * 2) - (cut_count * 2)
+
+  Exit Strategy Research (Phase 5):
+  - Chandelier Exit developed by Charles Le Beau - professional volatility-adaptive trailing stop
+  - Formula: Long Stop = Highest High(22) - ATR(22) × 3; Short Stop = Lowest Low(22) + ATR(22) × 3
+  - Lean provides self.atr(), self.max(), self.min() indicators for implementation
+  - Time-Based Exit serves as safety net for sideways markets where Chandelier won't trigger
+  - Breakeven Stop eliminates risk once position reaches profit threshold
+  - Final results: 67% win rate, 9.44% net profit, 9% bounded drawdown

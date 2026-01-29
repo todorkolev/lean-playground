@@ -1,0 +1,636 @@
+id: support-resistance-strategy-research
+created: "2026-01-28"
+last_updated: "2026-01-28"
+
+summary: |
+  Research for building a support/resistance trading strategy using zigzag pivot detection.
+  Strategy enters at support/resistance levels, pyramids in trend direction. Implementation includes
+  Hybrid Exit System (Chandelier + Time + Breakeven). New research focuses on all-weather performance
+  through regime detection, trend filters, volatility-based position sizing, and adaptive parameters
+  to make strategy profitable in bull, bear, and sideways markets.
+
+key_findings:
+  # Original research
+  - pytrendline library uses O(N³) exhaustive search - suitable for offline/daily analysis, not real-time
+  - support_resistance library requires zigzag dependency (not pre-installed in container)
+  - Both libraries use pivot point detection with configurable merge distances
+  - TouchScorer from support_resistance provides level quality scoring (+2 for touches, -2 for cuts)
+  - Lean's RollingWindow class is ideal for maintaining historical price data for level detection
+  - Strategy pattern in codebase uses QCAlgorithm with initialize()/on_data() structure
+  - No existing support/resistance implementation in the codebase - must build from scratch
+  - Container has scipy, numpy, pandas pre-installed; zigzag==0.2.2 added to requirements.txt
+
+  # Implementation findings
+  - "Pyramid bug: set_holdings() sets TOTAL allocation, not incremental - fixed by returning cumulative target"
+  - "Position state bug: _update_position_state() was adding instead of setting total_position_pct - fixed"
+  - "Lean FIFO matching: Trade P&L calculated per order fill, pyramiding creates apparent losses on first tranches"
+  - "Net loss despite 100% win rate: Unrealized loss on OPEN position at backtest end (by design per FR8)"
+  - "Min profit threshold: 0.1% is optimal - higher values (0.5%) cause worse results due to longer holds"
+
+  # All-Weather Strategy Research (NEW - Phase 7)
+  - "Regime Detection: ADX >25 = trending (use S/R breakout), ADX <20 = ranging (use mean-reversion at S/R)"
+  - "Trend Filter: Only trade WITH trend - long above 50 SMA, short below 50 SMA"
+  - "Directional Movement: +DI > -DI favors longs, -DI > +DI favors shorts - skip counter-trend trades"
+  - "Volatility Position Sizing: Position Size = Risk % / (ATR × Multiplier) - smaller in high volatility"
+  - "Regime-Switching: Switch from counter-trend S/R trades to breakout trades when ADX rises above 25"
+  - "Dynamic Parameters: Widen stops in high volatility (ATR > 20-day avg), tighten in low volatility"
+  - "Risk Parity Concept: Scale position size inversely with volatility to maintain constant dollar risk"
+  - "Hurst Exponent: H<0.5 = mean-reverting (S/R bounce), H>0.5 = trending (S/R breakout)"
+  - "Multi-Timeframe Confirmation: Use higher timeframe trend to filter lower timeframe S/R signals"
+  - "Ensemble Approach: Combine trend-following and mean-reversion for lower correlation and higher Sharpe"
+
+  # Exit Strategy Research
+  - "Chandelier Exit: Volatility-adaptive trailing stop using ATR - recommended by professional quants"
+  - "Formula: Long Stop = Highest High(22) - ATR(22) × 3; Short Stop = Lowest Low(22) + ATR(22) × 3"
+  - "ATR multiplier settings: Aggressive=2.0, Balanced=3.0, Conservative=3.5"
+  - "Time-based exit prevents indefinite holding - professional strategies use max holding periods"
+  - "Breakeven stop: Move stop to entry price once profit exceeds threshold to eliminate risk"
+  - "Lean provides self.atr(), self.max(), self.min() indicators for Chandelier implementation"
+  - "Lean provides self.trailing_stop_order() for native trailing stop support"
+  - "Hybrid exit system (Chandelier + Time + Breakeven) provides best risk/reward balance"
+
+file_paths:
+  primary:
+    - algorithms/sr_levels/main.py
+    - algorithms/sr_levels/research.ipynb
+    - requirements.txt
+  secondary:
+    - algorithms/sample_sma_crossover/main.py
+    - scripts/lean_playground/templates/main.py.template
+    - /Lean/Algorithm.Python/RollingWindowAlgorithm.py
+    - /Lean/Algorithm.Python/TrailingStopOrderRegressionAlgorithm.py
+    - /Lean/Algorithm.Python/IndicatorSuiteAlgorithm.py
+    - scripts/lean_playground/backtest.py
+    - scripts/lean_playground/project.py
+
+mermaid_diagrams:
+  - title: "Support/Resistance Strategy Architecture"
+    diagram: |
+      flowchart TD
+          subgraph DataLayer["Data Layer"]
+              OHLC[OHLC Price Data]
+              RW[RollingWindow<br/>Historical Bars]
+          end
+
+          subgraph LevelDetection["Level Detection Module"]
+              PD[Pivot Detector<br/>Local Min/Max]
+              LC[Level Clusterer<br/>Merge Similar Levels]
+              LS[Level Scorer<br/>Touch/Cut Analysis]
+          end
+
+          subgraph TradingLogic["Trading Logic"]
+              ES[Entry Signal<br/>Price at S/R Level]
+              PM[Position Manager<br/>Pyramiding + Margin]
+              EX[Exit Logic<br/>Profit at Opposite Level]
+          end
+
+          subgraph RiskManagement["Risk Management"]
+              ML[Margin Limit<br/>Stop New Entries]
+              PL[Profit Lock<br/>Only Exit on Profit]
+          end
+
+          OHLC --> RW
+          RW --> PD
+          PD --> LC
+          LC --> LS
+          LS --> ES
+          ES --> PM
+          PM --> EX
+          PM --> ML
+          EX --> PL
+
+  - title: "Strategy Entry/Exit Flow"
+    diagram: |
+      stateDiagram-v2
+          [*] --> Flat: No Position
+          Flat --> LongEntry: Price touches Support
+          Flat --> ShortEntry: Price touches Resistance
+
+          LongEntry --> LongPyramid: Next Support + Margin OK
+          LongEntry --> LongHold: At Resistance but Loss
+          LongEntry --> [*]: At Resistance + Profit
+
+          LongPyramid --> LongPyramid: Next Support + Margin OK
+          LongPyramid --> LongHold: Margin Limit Reached
+          LongPyramid --> [*]: At Resistance + Profit
+
+          LongHold --> [*]: At Resistance + Profit
+          LongHold --> LongHold: At Resistance but Loss
+
+          ShortEntry --> ShortPyramid: Next Resistance + Margin OK
+          ShortEntry --> ShortHold: At Support but Loss
+          ShortEntry --> [*]: At Support + Profit
+
+          ShortPyramid --> ShortPyramid: Next Resistance + Margin OK
+          ShortPyramid --> ShortHold: Margin Limit Reached
+          ShortPyramid --> [*]: At Support + Profit
+
+          ShortHold --> [*]: At Support + Profit
+          ShortHold --> ShortHold: At Support but Loss
+
+  - title: "Hybrid Exit System Flow (NEW)"
+    diagram: |
+      flowchart TD
+          subgraph EntryPhase["Entry Phase"]
+              ENTRY[Position Entry]
+              INIT_STOP[Set Initial Chandelier Stop]
+          end
+
+          subgraph MonitorPhase["Monitoring Phase - Each Bar"]
+              CHECK_PROFIT{Profit > min_profit?}
+              CHECK_LEVEL{At Opposite Level?}
+              CHECK_TIME{Hold Time > Max?}
+              CHECK_STOP{Price Hit Chandelier Stop?}
+              UPDATE_STOP[Update Chandelier Stop]
+          end
+
+          subgraph ExitPhase["Exit Phase"]
+              EXIT_PROFIT[Exit: Profit at Level]
+              EXIT_TIMEOUT[Exit: Time Exceeded]
+              EXIT_STOP[Exit: Chandelier Stop Hit]
+              BREAKEVEN[Move Stop to Breakeven]
+          end
+
+          ENTRY --> INIT_STOP
+          INIT_STOP --> CHECK_PROFIT
+
+          CHECK_PROFIT -->|Yes| CHECK_LEVEL
+          CHECK_PROFIT -->|No| CHECK_STOP
+
+          CHECK_LEVEL -->|Yes| EXIT_PROFIT
+          CHECK_LEVEL -->|No| BREAKEVEN
+
+          CHECK_STOP -->|Yes| EXIT_STOP
+          CHECK_STOP -->|No| CHECK_TIME
+
+          CHECK_TIME -->|Yes| EXIT_TIMEOUT
+          CHECK_TIME -->|No| UPDATE_STOP
+
+          UPDATE_STOP --> CHECK_PROFIT
+
+          BREAKEVEN --> CHECK_LEVEL
+
+  - title: "All-Weather Regime Detection System (NEW)"
+    diagram: |
+      flowchart TD
+          subgraph RegimeDetection["Regime Detection Layer"]
+              ADX[ADX Indicator<br/>Trend Strength]
+              SMA[50 SMA<br/>Trend Direction]
+              ATR_REL[ATR vs 20-day Avg<br/>Volatility State]
+          end
+
+          subgraph RegimeClassification["Market Regime"]
+              RANGING{ADX < 20?}
+              TRENDING{ADX > 25?}
+              VOLATILE{ATR > 1.5× Avg?}
+          end
+
+          subgraph StrategyAdaptation["Strategy Adaptation"]
+              MR[Mean Reversion<br/>Bounce at S/R]
+              TF[Trend Following<br/>Breakout at S/R]
+              REDUCED[Reduced Size<br/>Wider Stops]
+              NORMAL[Normal Size<br/>Standard Stops]
+          end
+
+          subgraph TrendFilter["Trend Filter"]
+              LONG_ONLY[Long Only<br/>Price > SMA]
+              SHORT_ONLY[Short Only<br/>Price < SMA]
+              BOTH[Both Directions<br/>Ranging Market]
+          end
+
+          ADX --> RANGING
+          ADX --> TRENDING
+          ATR_REL --> VOLATILE
+
+          RANGING -->|Yes| MR
+          RANGING -->|No| TRENDING
+          TRENDING -->|Yes| TF
+          TRENDING -->|No| MR
+
+          VOLATILE -->|Yes| REDUCED
+          VOLATILE -->|No| NORMAL
+
+          SMA --> LONG_ONLY
+          SMA --> SHORT_ONLY
+          RANGING -->|Yes| BOTH
+
+          MR --> BOTH
+          TF --> LONG_ONLY
+          TF --> SHORT_ONLY
+
+  - title: "Volatility-Based Position Sizing (NEW)"
+    diagram: |
+      flowchart LR
+          subgraph Input["Inputs"]
+              RISK[Account Risk %<br/>e.g., 1%]
+              ATR_VAL[Current ATR<br/>e.g., $5.00]
+              MULT[ATR Multiplier<br/>e.g., 2.0]
+          end
+
+          subgraph Calculation["Position Sizing"]
+              FORMULA[Size = Risk $ / ATR × Mult]
+              EXAMPLE["$1000 / ($5 × 2) = 100 shares"]
+          end
+
+          subgraph Adaptation["Volatility Adaptation"]
+              HIGH_VOL[High ATR → Small Position]
+              LOW_VOL[Low ATR → Large Position]
+              CONST_RISK[Constant Dollar Risk]
+          end
+
+          RISK --> FORMULA
+          ATR_VAL --> FORMULA
+          MULT --> FORMULA
+          FORMULA --> EXAMPLE
+          EXAMPLE --> HIGH_VOL
+          EXAMPLE --> LOW_VOL
+          HIGH_VOL --> CONST_RISK
+          LOW_VOL --> CONST_RISK
+
+data_models:
+  - name: PriceLevel
+    description: Represents a detected support or resistance level
+    properties:
+      - name: price
+        type: float
+        description: The price value of the level
+      - name: level_type
+        type: enum[SUPPORT, RESISTANCE]
+        description: Whether this is support or resistance
+      - name: touch_count
+        type: int
+        description: Number of times price touched this level
+
+  - name: PositionDirection
+    description: Enumeration for position direction tracking
+    properties:
+      - name: FLAT
+        type: string
+        description: No position
+      - name: LONG
+        type: string
+        description: Long position
+      - name: SHORT
+        type: string
+        description: Short position
+
+  - name: StrategyConfig
+    description: Configuration parameters for the strategy
+    properties:
+      - name: threshold_percent
+        type: float
+        description: Zigzag pivot detection threshold (default 5.0)
+      - name: merge_percent
+        type: float
+        description: Level clustering distance percentage (default 0.5)
+      - name: lookback_period
+        type: int
+        description: Number of bars for level detection (default 100)
+      - name: touch_distance_percent
+        type: float
+        description: Price-to-level touch threshold (default 0.3)
+      - name: initial_position_pct
+        type: float
+        description: Initial entry size percentage (default 30.0)
+      - name: pyramid_step_pct
+        type: float
+        description: Each pyramid addition percentage (default 20.0)
+      - name: max_margin_percent
+        type: float
+        description: Maximum margin utilization (default 50.0)
+      - name: min_profit_percent
+        type: float
+        description: Minimum profit to allow exit (default 0.1)
+      - name: resolution
+        type: string
+        description: Data resolution (Daily, Hour, Minute)
+
+  - name: ExitConfig
+    description: Configuration for hybrid exit system (NEW)
+    properties:
+      - name: enable_chandelier_stop
+        type: bool
+        description: Enable ATR-based trailing stop (default True)
+      - name: atr_period
+        type: int
+        description: Period for ATR calculation (default 22)
+      - name: atr_multiplier
+        type: float
+        description: Multiplier for Chandelier Exit (default 3.0)
+      - name: max_hold_bars
+        type: int
+        description: Maximum bars to hold a position (default 30)
+      - name: breakeven_threshold
+        type: float
+        description: Profit % to move stop to breakeven (default 1.0)
+      - name: use_time_exit
+        type: bool
+        description: Enable time-based exit (default True)
+
+  - name: ExitState
+    description: Tracks exit conditions for active position
+    properties:
+      - name: entry_bar
+        type: int
+        description: Bar number at entry
+      - name: entry_price
+        type: float
+        description: Entry price
+      - name: highest_since_entry
+        type: float
+        description: Highest high since entry (for long Chandelier)
+      - name: lowest_since_entry
+        type: float
+        description: Lowest low since entry (for short Chandelier)
+      - name: chandelier_stop
+        type: float
+        description: Current Chandelier stop level
+      - name: breakeven_activated
+        type: bool
+        description: Has stop moved to breakeven?
+      - name: bars_held
+        type: int
+        description: Number of bars in position
+
+  - name: RegimeConfig
+    description: Configuration for market regime detection (NEW - Phase 7)
+    properties:
+      - name: adx_period
+        type: int
+        description: Period for ADX calculation (default 14)
+      - name: adx_trending_threshold
+        type: float
+        description: ADX above this = trending market (default 25)
+      - name: adx_ranging_threshold
+        type: float
+        description: ADX below this = ranging market (default 20)
+      - name: sma_period
+        type: int
+        description: Period for trend filter SMA (default 50)
+      - name: enable_trend_filter
+        type: bool
+        description: Only trade with trend direction (default True)
+      - name: enable_regime_adaptation
+        type: bool
+        description: Adapt strategy to regime (default True)
+      - name: volatility_lookback
+        type: int
+        description: Bars to compare ATR for volatility state (default 20)
+      - name: high_volatility_threshold
+        type: float
+        description: ATR > X times average = high volatility (default 1.5)
+
+  - name: MarketRegime
+    description: Enumeration for detected market regime (NEW - Phase 7)
+    values:
+      - RANGING: "ADX < 20, non-trending, mean-reversion favorable"
+      - TRENDING_UP: "ADX > 25 and +DI > -DI, uptrend, long-only"
+      - TRENDING_DOWN: "ADX > 25 and -DI > +DI, downtrend, short-only"
+      - HIGH_VOLATILITY: "ATR > 1.5× average, reduce position size"
+      - UNKNOWN: "Transitional state, use default parameters"
+
+external_libraries:
+  - name: zigzag
+    version: "0.2.2"
+    url: https://pypi.org/project/zigzag/
+    purpose: Pivot point detection using peak_valley_pivots function
+    note: Version 0.3.2 has broken pyproject.toml - use 0.2.2
+
+  - name: pytrendline
+    url: https://github.com/ednunezg/pytrendline
+    purpose: Trendline-based support/resistance detection
+    complexity: O(N³) - offline analysis only
+    recommendation: Not used - rejected due to complexity
+
+exit_strategies_research:
+  - name: Chandelier Exit
+    description: |
+      Developed by Charles Le Beau. Volatility-adaptive trailing stop using ATR.
+      Formula: Long Stop = Highest High(22) - ATR(22) × 3
+      Formula: Short Stop = Lowest Low(22) + ATR(22) × 3
+    benefits:
+      - Adapts to market volatility automatically
+      - Trails with trend to lock in profits
+      - Professional-grade risk management
+    settings:
+      default_period: 22
+      default_multiplier: 3.0
+      aggressive_multiplier: 2.0
+      conservative_multiplier: 3.5
+    source: "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-overlays/chandelier-exit"
+
+  - name: Time-Based Exit
+    description: |
+      Maximum holding period to prevent indefinite position holding.
+      Used by professional quant strategies as "hard exit threshold".
+    benefits:
+      - Prevents deadlock positions
+      - Frees capital for better opportunities
+      - Bounds maximum loss duration
+    recommended_periods:
+      daily: 20-30 bars
+      hourly: 100-200 bars
+      minute: 500-1000 bars
+    source: "https://www.quantinsti.com/articles/systematic-trading/"
+
+  - name: Breakeven Stop
+    description: |
+      Once position reaches profit threshold, move stop to entry price.
+      Eliminates risk of loss while maintaining upside potential.
+    trigger: "When unrealized profit > breakeven_threshold%"
+    source: "https://www.luxalgo.com/blog/5-atr-stop-loss-strategies-for-risk-control/"
+
+all_weather_techniques:
+  - name: "Regime Detection with ADX"
+    description: |
+      Average Directional Index (ADX) measures trend strength regardless of direction.
+      ADX < 20: Non-trending/ranging market - use mean-reversion at S/R levels
+      ADX 20-25: Weak trend - reduce position size, tighter stops
+      ADX > 25: Strong trend - only trade WITH trend, use breakouts
+      ADX > 40: Very strong trend - avoid counter-trend trades completely
+    implementation:
+      indicator: "self.adx(symbol, 14)"
+      threshold_trending: 25
+      threshold_ranging: 20
+    source: "https://www.luxalgo.com/blog/market-regimes-explained-build-winning-trading-strategies/"
+
+  - name: "Trend Filter with Moving Average"
+    description: |
+      Use 50-period SMA as trend direction filter:
+      - Price > SMA: Only allow long entries at support
+      - Price < SMA: Only allow short entries at resistance
+      This prevents counter-trend trades in strong trends (BTC 2015-2017 problem).
+    implementation:
+      indicator: "self.sma(symbol, 50)"
+      long_condition: "price > sma_value"
+      short_condition: "price < sma_value"
+    source: "https://www.fmz.com/lang/en/strategy/495861"
+
+  - name: "Directional Movement Filter (+DI/-DI)"
+    description: |
+      ADX comes with +DI and -DI components showing directional bias:
+      +DI > -DI: Bullish pressure dominant - favor longs
+      -DI > +DI: Bearish pressure dominant - favor shorts
+      Skip signals that contradict directional bias.
+    implementation:
+      indicator: "self.adx(symbol, 14)"
+      access: "adx.positive_directional_index, adx.negative_directional_index"
+    source: "https://www.schwab.com/learn/story/spot-and-stick-to-trends-with-adx-and-rsi"
+
+  - name: "Volatility-Based Position Sizing"
+    description: |
+      Scale position size inversely with volatility to maintain constant risk:
+      Position Size = (Account Risk $) / (ATR × Multiplier)
+      High ATR → Smaller position
+      Low ATR → Larger position
+      This prevents oversized positions in volatile markets (crypto).
+    formula: "position_size = (account * risk_pct) / (atr * multiplier)"
+    multiplier_guide:
+      conservative: 3.0
+      moderate: 2.0
+      aggressive: 1.5
+    source: "https://www.luxalgo.com/blog/5-position-sizing-methods-for-high-volatility-trades/"
+
+  - name: "Regime-Adaptive Strategy Selection"
+    description: |
+      Different market conditions require different approaches:
+      - Ranging (ADX < 20): Mean-reversion at S/R - bounce trades
+      - Trending (ADX > 25): Breakout trades - S/R becomes target, not entry
+      - High Volatility (ATR > 1.5× avg): Reduce size, widen stops
+      - Low Volatility (ATR < 0.7× avg): Normal size, tighter stops
+    source: "https://quantpedia.com/an-introduction-to-volatility-targeting/"
+
+  - name: "Long-Only Mode for Bull Markets"
+    description: |
+      When detected in strong uptrend (SMA slope positive + ADX > 25 + Price > SMA):
+      - Disable short selling completely
+      - Only enter long at support levels
+      - Use S/R breakouts as trend continuation signals
+      This would have prevented the -61% loss on BTC.
+    trigger: "sma_slope > 0 AND adx > 25 AND price > sma"
+    source: "https://medium.com/@FMZQuant/multi-timeframe-adaptive-market-regime-quantitative-trading-strategy-1b16309ddabb"
+
+  - name: "Dynamic ATR Multiplier"
+    description: |
+      Adjust Chandelier Exit multiplier based on regime:
+      - Ranging market: 2.0× ATR (tighter stops, more exits)
+      - Trending market: 3.5× ATR (wider stops, ride the trend)
+      - High volatility: 4.0× ATR (avoid whipsaws)
+    current_multiplier: 3.0
+    suggested_adaptive:
+      ranging: 2.0
+      trending: 3.5
+      volatile: 4.0
+    source: "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-overlays/chandelier-exit"
+
+  - name: "Multi-Timeframe Confirmation"
+    description: |
+      Use higher timeframe trend to filter lower timeframe signals:
+      - Daily: Determine overall trend direction
+      - Hourly: Identify S/R levels for entry
+      - Entry only when both timeframes agree
+    example: "If daily trend is UP, only take long signals from hourly S/R"
+    source: "https://medium.com/@FMZQuant/multi-timeframe-adaptive-market-regime-quantitative-trading-strategy-1b16309ddabb"
+
+  - name: "Equity Curve Position Sizing"
+    description: |
+      Reduce position size during drawdowns to protect capital:
+      - If equity < 10% from peak: Reduce size by 50%
+      - If equity < 20% from peak: Reduce size by 75%
+      - If equity recovers: Restore normal size
+      Use buffer zones to prevent whipsawing.
+    source: "https://www.quantifiedstrategies.com/position-sizing-strategies/"
+
+bugs_fixed:
+  - bug: "Pyramid position sizing"
+    symptom: "Each pyramid reduced position from 30% to 20%"
+    cause: "set_holdings() sets TOTAL, not incremental"
+    fix: "_calculate_position_size() returns cumulative: total_position_pct + pyramid_step_pct"
+
+  - bug: "Position state tracking"
+    symptom: "total_position_pct grew exponentially, margin exceeded limits"
+    cause: "_update_position_state() was adding size instead of setting"
+    fix: "Changed total_position_pct += to total_position_pct ="
+
+insights:
+  - title: "Lean FIFO Order Matching"
+    description: |
+      Lean calculates trade P&L using FIFO matching of individual order fills.
+      When pyramiding at lower prices, early tranches show "losses" even when
+      the round-trip trade is profitable overall. Example: Buy at $315, pyramid
+      at $306, exit at $306 → First leg shows -3% loss in statistics.
+
+  - title: "Net Loss Despite 100% Win Rate"
+    description: |
+      The strategy achieves 100% win rate on CLOSED trades, but shows net loss
+      because of unrealized loss on OPEN position at backtest end. This is by
+      design (FR8: hold if not profitable). The position never reached a
+      profitable exit point before Dec 31, 2023.
+
+  - title: "Hybrid Exit System (NEW)"
+    description: |
+      Professional quant strategies use multiple exit layers:
+      1. Chandelier Exit (ATR-based) - primary volatility-adaptive stop
+      2. Time-Based Exit - prevents indefinite holding
+      3. Breakeven Stop - eliminates risk after profit
+      This hybrid approach bounds risk while maximizing profit potential.
+
+backtest_results:
+  before_hybrid_exit:
+    win_rate: "100%"
+    loss_rate: "0%"
+    net_profit: "-17.07%"
+    drawdown: "22.9%"
+    total_orders: 25
+    interpretation: "All closed trades profitable. Net loss from unrealized loss on open position at end."
+
+  after_hybrid_exit:
+    asset: "SPY"
+    period: "2020-2023"
+    resolution: "Daily"
+    win_rate: "67%"
+    loss_rate: "33%"
+    net_profit: "+9.44%"
+    drawdown: "9.0%"
+    total_orders: 287
+    final_equity: "$109,437.17"
+    interpretation: "Hybrid exit system bounds risk. Lower win rate but positive net profit and bounded drawdown."
+
+  crypto_btcusd:
+    asset: "BTCUSD (Coinbase)"
+    period: "2015-2018"
+    resolution: "Daily"
+    win_rate: "72%"
+    loss_rate: "28%"
+    net_profit: "-61.15%"
+    drawdown: "68.2%"
+    total_orders: 1112
+    final_equity: "$38,850.89"
+    interpretation: |
+      CATASTROPHIC LOSS despite 72% win rate! Strategy shorted heavily during massive BTC bull run
+      ($200 → $20,000). Average loss (3.93%) was 3× larger than average win (1.29%).
+      Root cause: No trend filter, strategy traded counter-trend in strong uptrend.
+      Solution: Implement regime detection + trend filter to prevent counter-trend trades.
+
+updates:
+  - date: "2026-01-28"
+    summary: "Initial research on support/resistance libraries and strategy architecture"
+  - date: "2026-01-28"
+    summary: "Added implementation findings: pyramid bug fix, FIFO matching insight, net loss analysis"
+  - date: "2026-01-28"
+    summary: "Added sophisticated exit strategy research: Chandelier Exit, Time-Based Exit, Breakeven Stop"
+  - date: "2026-01-28"
+    summary: "Hybrid Exit System implemented and validated: +9.44% net profit, 9% drawdown, 67% win rate"
+  - date: "2026-01-28"
+    summary: "All-Weather Strategy research: Regime detection, trend filters, volatility-based position sizing"
+
+tldr:
+  - "PROBLEM: Strategy lost -61% on BTC (2015-2018) by shorting during massive bull run"
+  - "SOLUTION: All-Weather System using regime detection + trend filter + volatility sizing"
+  - "ADX Regime Detection: ADX>25=trending (follow trend), ADX<20=ranging (mean-reversion at S/R)"
+  - "Trend Filter: Only long above 50 SMA, only short below 50 SMA - prevents counter-trend disaster"
+  - "+DI/-DI Direction: +DI>-DI favors longs, -DI>+DI favors shorts - skip conflicting signals"
+  - "Volatility Position Sizing: Size = Risk$ / (ATR × Mult) - smaller positions in volatile markets"
+  - "Dynamic ATR Multiplier: 2.0× in ranging, 3.5× in trending, 4.0× in high volatility"
+  - "Lean provides: self.adx(), self.sma(), self.ema() - all indicators available"
+  - "Expected outcome: Positive returns in bull, bear, AND sideways markets"
