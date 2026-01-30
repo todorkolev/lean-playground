@@ -52,8 +52,19 @@ When ALL success criteria are met:
 - Summarize what was accomplished
 - Output: `<promise>ACHIEVED</promise>`
 
+**IMPORTANT**: Only output `<promise>ACHIEVED</promise>` when ALL criteria are met.
+Do NOT output partial achievement promises - keep iterating until success or max iterations.
+
 ### 5. MAX ITERATIONS
 If max iterations reached without full success:
-- Summarize progress made
-- List remaining criteria not met
-- Output: `<promise>ACHIEVED - PARTIAL</promise>`
+- The stop hook will automatically end the session
+- Summarize progress made and criteria achieved
+- List remaining criteria not met with clear explanation
+- Session status will be set to `max_iterations_reached`
+
+### 6. HANDLING IMPOSSIBLE CRITERIA
+If a criterion appears impossible after extensive testing:
+- Document at least 10+ varied attempts targeting that specific criterion
+- Explain WHY it's impossible (structural, mathematical, or fundamental limitation)
+- **Do NOT give up** - continue iterating on other approaches
+- The session only ends at max_iterations or full achievement

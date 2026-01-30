@@ -105,10 +105,11 @@ if [[ $? -ne 0 ]] || [[ -z "$LAST_OUTPUT" ]]; then
   exit 0
 fi
 
-# Check for completion promise
+# Check for completion promise (ONLY exact match ends session)
 if [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
   PROMISE_TEXT=$(echo "$LAST_OUTPUT" | perl -0777 -pe 's/.*?<promise>(.*?)<\/promise>.*/$1/s; s/^\s+|\s+$//g; s/\s+/ /g' 2>/dev/null || echo "")
 
+  # ONLY exact match ends the session - partial achievements continue iterating
   if [[ -n "$PROMISE_TEXT" ]] && [[ "$PROMISE_TEXT" = "$COMPLETION_PROMISE" ]]; then
     echo "Achieve session $ACTIVE_SESSION: Goal achieved! <promise>$COMPLETION_PROMISE</promise>"
     # Mark session as completed
