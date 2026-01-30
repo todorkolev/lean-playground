@@ -1,4 +1,6 @@
 {
+  "model": "opus",
+  "alwaysThinkingEnabled": true,
   "permissions": {
     "allow": [
       "Bash(*)",
@@ -13,10 +15,8 @@
       "Task"
     ]
   },
-  "model": "opus",
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "context7"
-  ],
-  "alwaysThinkingEnabled": true
+  ]
 }

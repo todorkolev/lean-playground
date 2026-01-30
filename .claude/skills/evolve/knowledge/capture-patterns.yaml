@@ -58,3 +58,30 @@ entries:
       Extract the general principle, but note the specific context where it was discovered.
 
     tags: [meta, generalization]
+
+  - id: CP-004
+    created: "2026-01-30"
+    type: pattern
+    confidence: 0.5
+    validations: 0
+
+    summary: "Skills should be actionable, not just documentation"
+    context: "When designing Claude Code skills that users invoke directly"
+    details: |
+      A skill that only displays help text when invoked is frustrating.
+      Users expect /skill-name to DO something, not just show instructions.
+
+      Design principles:
+      - Accept arguments and act on them immediately
+      - If no arguments, either: (a) show quick help with examples, or (b) infer intent from context
+      - Parent skills should dispatch to subcommands based on arguments
+      - Include $ARGUMENTS variable substitution in the workflow
+
+      Example: /evolve "learning" should capture it directly, not redirect to /evolve.learn
+
+    evidence:
+      - source: "skill-design-session"
+        result: "Updated /evolve and /strategy-writer to accept args and act"
+        date: "2026-01-30"
+
+    tags: [meta, skill-design, ux]

@@ -9,7 +9,7 @@ files:
   - id: capture-patterns
     path: capture-patterns.yaml
     description: "Patterns for effectively capturing learnings"
-    entry_count: 0
+    entry_count: 4
 
   - id: reflection-patterns
     path: reflection-patterns.yaml

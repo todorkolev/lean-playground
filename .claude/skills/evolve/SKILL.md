@@ -1,51 +1,76 @@
 ---
 name: evolve
-description: Self-improvement engine that captures learnings and updates skill knowledge. Use when you want to record an insight, pattern, or mistake for future reference.
+description: |
+  AUTO-INVOKE to capture learnings after productive work sessions.
+  Silently records patterns, anti-patterns, and insights to any skill's knowledge folder.
+  Triggers on: error resolution, successful implementations, discovered patterns, or explicit reflection.
 allowed-tools: Read, Write, Glob, Grep
 ---
 
-# Evolve Skill
+# Evolve - Self-Improvement Engine
 
-The evolve skill manages learning capture and reflection for all skills in this project, including itself.
+**Universal skill that captures learnings to improve any skill's knowledge base.**
 
-## Purpose
+Operate silently unless explicitly asked to reflect.
 
-- Capture learnings from conversations and experiences
-- Store knowledge in skill-specific `knowledge/` folders
-- Update confidence scores based on evidence
-- Enable skills to improve through use
+## When to Auto-Invoke
 
-## Knowledge Location
+Capture learnings when you observe:
+- Bug fixes or error resolutions
+- Successful implementations worth remembering
+- Patterns that worked or failed
+- Anti-patterns to avoid
+- Insights about tools, APIs, or approaches
 
-Each skill has its own knowledge folder:
-- `~/.claude/skills/{skill-name}/knowledge/`
+## Silent Capture Workflow
 
-This skill's own knowledge lives at:
-- `~/.claude/skills/evolve/knowledge/`
+1. **Identify target skill** from conversation context
+   - Look at what domain the work was in
+   - Check which skills have knowledge folders in `.claude/skills/*/knowledge/`
 
-## Commands
+2. **Identify knowledge file** within that skill
+   - Match the learning topic to existing files
+   - Create new file if needed (update `_index.yaml`)
 
-This skill provides two commands:
-- `/evolve.learn` - Capture a single learning
-- `/evolve.reflect` - Session retrospective to extract multiple learnings
+3. **Generate entry**:
+   ```yaml
+   - id: "{PREFIX}-{NNN}"
+     created: "{TODAY}"
+     type: pattern | anti-pattern | insight
+     confidence: 0.5
+     validations: 0
+     summary: "{ONE_LINE}"
+     context: "{WHEN_APPLIES}"
+     details: |
+       {EXPLANATION}
+     tags: [{KEYWORDS}]
+   ```
 
-## Knowledge Schema
+4. **Append** to knowledge file
 
-All knowledge files follow the schema defined in:
-- Read `knowledge/_index.yaml` for the list of knowledge files
-- Each file contains `entries` with: id, type, confidence, summary, context, details, evidence, tags
+5. **Update** `_index.yaml` entry count
 
-## Workflow
+## ID Prefixes
 
-When capturing a learning:
-1. Identify the target skill (default: infer from conversation context)
-2. Identify the knowledge file (default: infer from learning topic)
-3. Generate a unique entry ID
-4. Create entry with confidence 0.5
-5. Update the knowledge file
-6. Update `_index.yaml` if new file created
+Use first two letters of filename + sequential number:
+- `capture-patterns.yaml` → CP-NNN
+- `reflection-patterns.yaml` → RP-NNN
+- `{custom-file}.yaml` → {XX}-NNN
 
-When reflecting:
-1. Review conversation for insights, mistakes, patterns
-2. For each finding, run the capture workflow
-3. Log the reflection in `evolve/knowledge/reflection-patterns.yaml`
+## Explicit Reflection
+
+When user asks to reflect:
+1. Scan conversation for all learnings
+2. Capture each to appropriate skill/file
+3. Update existing entries if validated/contradicted:
+   - Validation: `confidence += 0.1` (max 1.0)
+   - Contradiction: `confidence -= 0.15` (min 0.0)
+4. Summarize what was captured
+
+## Knowledge Locations
+
+Each skill maintains its own knowledge:
+- `.claude/skills/{skill-name}/knowledge/`
+
+This skill's meta-knowledge about learning capture:
+- `.claude/skills/evolve/knowledge/`
