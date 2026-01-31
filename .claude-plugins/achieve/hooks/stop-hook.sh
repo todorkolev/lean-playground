@@ -23,7 +23,9 @@ fi
 
 # Determine active session from transcript markers (transparent parallel support)
 # Look for ACHIEVE_SESSION markers in the transcript
-ACTIVE_SESSION=$(grep -o 'ACHIEVE_SESSION: [a-f0-9]*' "$TRANSCRIPT_PATH" 2>/dev/null | tail -1 | sed 's/ACHIEVE_SESSION: //' || echo "")
+# FIX: Use -E for extended regex and + (one or more) instead of * (zero or more)
+# This prevents matching empty session IDs like "ACHIEVE_SESSION: "
+ACTIVE_SESSION=$(grep -oE 'ACHIEVE_SESSION: [a-f0-9]+' "$TRANSCRIPT_PATH" 2>/dev/null | tail -1 | sed 's/ACHIEVE_SESSION: //' || echo "")
 
 # No fallback to index.yaml - if no ACHIEVE_SESSION marker in transcript,
 # this is not an achieve:goal conversation and we should not interfere

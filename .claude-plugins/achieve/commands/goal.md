@@ -2,7 +2,7 @@
 version: "1.0"
 description: "Achieve a goal using iterative development with Buildforce phases"
 argument-hint: "<goal description>"
-allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-session.sh:*)"]
+allowed-tools: ["Bash(*)", "Read(*)", "Write(*)", "Edit(*)", "Glob(*)", "Grep(*)", "Task(*)", "WebFetch(*)", "WebSearch(*)", "mcp__*"]
 ---
 
 # /goal Command

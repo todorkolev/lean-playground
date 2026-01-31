@@ -3,16 +3,18 @@
   "alwaysThinkingEnabled": true,
   "permissions": {
     "allow": [
-      "Bash(*)",
-      "Edit",
+      "Bash",
+      "Read",
       "Write",
+      "Edit",
+      "Glob",
+      "Grep",
       "NotebookEdit",
       "WebFetch",
       "WebSearch",
-      "Mcp",
-      "Skill(*)",
-      "mcp__*",
-      "Task"
+      "Task",
+      "Skill",
+      "mcp__*"
     ]
   },
   "enableAllProjectMcpServers": true,
