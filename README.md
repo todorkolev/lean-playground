@@ -49,6 +49,7 @@ The `lp` command is the primary interface. No authentication required.
 | Command | Description |
 |---|---|
 | `lp backtest <project>` | Run a backtest with the Lean engine |
+| `lp analyze <project>` | Generate performance tearsheet from backtest results |
 | `lp create <name>` | Create a new project from template |
 | `lp create <name> --from <Example>` | Create from a Lean algorithm example |
 | `lp browse [keyword]` | Browse ~500 algorithm examples |
@@ -136,6 +137,23 @@ lp data info SPY --asset equity
 ```
 
 The data directory includes sample data for equities, crypto, forex, and futures. Use `lp download` to add more data from supported exchanges.
+
+### Analyzing Backtest Results
+
+Generate an HTML tearsheet report from backtest results:
+
+```bash
+# Analyze the latest backtest for a project
+lp analyze sr_levels
+
+# Analyze a specific backtest by timestamp
+lp analyze sr_levels --backtest 20260129-215353
+
+# Include benchmark comparison
+lp analyze sr_levels --benchmark BTC-USD
+```
+
+The report includes equity curve, drawdown analysis, monthly returns heatmap, and key risk metrics (Sharpe, Sortino, drawdown, etc.). Reports are saved as `tearsheet.html` in the backtest results folder.
 
 ### Research Environment
 

@@ -7,6 +7,7 @@ without requiring QuantConnect authentication.
 
 Usage:
     lp backtest <project>              Run a backtest
+    lp analyze <project>               Generate performance tearsheet
     lp create <name> [--from REF]      Create a new algorithm project
     lp browse [keyword]                Browse algorithm examples
     lp download [options]              Download historical data
@@ -134,6 +135,21 @@ def _cmd_download(args: argparse.Namespace) -> int:
 
         return 0
     except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+def _cmd_analyze(args: argparse.Namespace) -> int:
+    from lean_playground.analyze import analyze_backtest
+
+    try:
+        analyze_backtest(
+            project=args.project,
+            backtest_timestamp=args.backtest,
+            benchmark=args.benchmark,
+        )
+        return 0
+    except (FileNotFoundError, ValueError) as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
 
@@ -358,6 +374,42 @@ Examples:
         help="Filter by market/exchange",
     )
     p_data_info.set_defaults(func=_cmd_data_info)
+
+    # analyze
+    p_analyze = subparsers.add_parser(
+        "analyze",
+        help="Generate performance tearsheet from backtest results",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""Generate an HTML tearsheet from backtest results.
+
+The report includes equity curve, drawdown analysis, monthly returns heatmap,
+and key risk metrics (Sharpe, Sortino, etc.).
+
+Examples:
+    lp analyze sr_levels                              # Latest backtest
+    lp analyze sr_levels --backtest 20260129-215353   # Specific backtest
+    lp analyze sr_levels --benchmark BTC-USD          # With benchmark
+""",
+    )
+    p_analyze.add_argument(
+        "project",
+        help="Project name or path (e.g., 'sr_levels' or 'algorithms/sr_levels')",
+    )
+    p_analyze.add_argument(
+        "--backtest",
+        dest="backtest",
+        metavar="TIMESTAMP",
+        default=None,
+        help="Specific backtest timestamp (default: latest)",
+    )
+    p_analyze.add_argument(
+        "--benchmark",
+        dest="benchmark",
+        metavar="TICKER",
+        default=None,
+        help="Benchmark ticker for comparison (e.g., BTC-USD, SPY)",
+    )
+    p_analyze.set_defaults(func=_cmd_analyze)
 
     args = parser.parse_args()
     return args.func(args)

@@ -286,3 +286,157 @@ class TestBinanceClient:
         assert "1m" in KLINE_INTERVALS
         assert "1h" in KLINE_INTERVALS
         assert "1d" in KLINE_INTERVALS
+
+
+# ---------------------------------------------------------------------------
+# analyze.py tests
+# ---------------------------------------------------------------------------
+
+class TestAnalyze:
+    """Tests for the analyze module."""
+
+    def test_load_equity_curve_valid_data(self, tmp_path):
+        """Test loading equity curve from valid JSON."""
+        from lean_playground.analyze import load_equity_curve
+
+        # Create mock results file
+        results = {
+            "charts": {
+                "Strategy Equity": {
+                    "series": {
+                        "Equity": {
+                            "values": [
+                                [1672549200, 100000, 100000, 100000, 100000],
+                                [1672635600, 100000, 101000, 99000, 100500],
+                                [1672722000, 100500, 102000, 100000, 101000],
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+        results_dir = tmp_path / "backtest"
+        results_dir.mkdir()
+        results_file = results_dir / "main-summary.json"
+        results_file.write_text(json.dumps(results))
+
+        equity = load_equity_curve(results_dir)
+
+        assert len(equity) == 3
+        assert equity.iloc[0] == 100000
+        assert equity.iloc[-1] == 101000
+
+    def test_load_equity_curve_missing_data(self, tmp_path):
+        """Test error handling for missing equity data."""
+        from lean_playground.analyze import load_equity_curve
+
+        results_dir = tmp_path / "backtest"
+        results_dir.mkdir()
+        results_file = results_dir / "main-summary.json"
+        results_file.write_text('{"charts": {}}')
+
+        with pytest.raises(ValueError, match="Missing equity data"):
+            load_equity_curve(results_dir)
+
+    def test_load_equity_curve_empty_values(self, tmp_path):
+        """Test error handling for empty equity curve."""
+        from lean_playground.analyze import load_equity_curve
+
+        results = {
+            "charts": {
+                "Strategy Equity": {
+                    "series": {
+                        "Equity": {
+                            "values": []
+                        }
+                    }
+                }
+            }
+        }
+        results_dir = tmp_path / "backtest"
+        results_dir.mkdir()
+        results_file = results_dir / "main-summary.json"
+        results_file.write_text(json.dumps(results))
+
+        with pytest.raises(ValueError, match="Equity curve is empty"):
+            load_equity_curve(results_dir)
+
+    def test_equity_to_daily_returns(self):
+        """Test conversion of equity to daily returns."""
+        import pandas as pd
+        from lean_playground.analyze import equity_to_daily_returns
+
+        # Create equity series with known values
+        dates = pd.date_range("2024-01-01", periods=5, freq="D", tz="UTC")
+        equity = pd.Series([100, 102, 101, 105, 110], index=dates)
+
+        returns = equity_to_daily_returns(equity)
+
+        assert len(returns) == 4  # First day has no return
+        assert abs(returns.iloc[0] - 0.02) < 0.001  # 2% return
+
+    def test_equity_to_daily_returns_insufficient_data(self):
+        """Test error when not enough data."""
+        import pandas as pd
+        from lean_playground.analyze import equity_to_daily_returns
+
+        dates = pd.date_range("2024-01-01", periods=1, freq="D", tz="UTC")
+        equity = pd.Series([100], index=dates)
+
+        with pytest.raises(ValueError, match="Insufficient data"):
+            equity_to_daily_returns(equity)
+
+    def test_find_latest_backtest(self, tmp_path, monkeypatch):
+        """Test finding the latest backtest results."""
+        from lean_playground.analyze import find_latest_backtest
+        import lean_playground.analyze
+
+        # Set up mock results directory
+        monkeypatch.setattr(lean_playground.analyze, "RESULTS_DIR", tmp_path)
+
+        project_dir = tmp_path / "test_project"
+        (project_dir / "20240101-120000").mkdir(parents=True)
+        (project_dir / "20240102-120000").mkdir(parents=True)
+
+        latest = find_latest_backtest("test_project")
+
+        assert latest.name == "20240102-120000"
+
+    def test_find_latest_backtest_no_results(self, tmp_path, monkeypatch):
+        """Test error when no results exist."""
+        from lean_playground.analyze import find_latest_backtest
+        import lean_playground.analyze
+
+        monkeypatch.setattr(lean_playground.analyze, "RESULTS_DIR", tmp_path)
+
+        with pytest.raises(FileNotFoundError, match="No results found"):
+            find_latest_backtest("nonexistent")
+
+    def test_resolve_project_name(self):
+        """Test project path resolution."""
+        from lean_playground.analyze import resolve_project_name
+
+        assert resolve_project_name("sr_levels") == "sr_levels"
+        assert resolve_project_name("algorithms/sr_levels") == "sr_levels"
+        # Nested paths are preserved after removing "algorithms/" prefix
+        assert resolve_project_name("algorithms/nested/project") == "nested/project"
+
+    def test_load_statistics(self, tmp_path):
+        """Test loading statistics from results."""
+        from lean_playground.analyze import load_statistics
+
+        results = {
+            "statistics": {
+                "Sharpe Ratio": "1.5",
+                "Net Profit": "25%",
+            }
+        }
+        results_dir = tmp_path / "backtest"
+        results_dir.mkdir()
+        results_file = results_dir / "main-summary.json"
+        results_file.write_text(json.dumps(results))
+
+        stats = load_statistics(results_dir)
+
+        assert stats["Sharpe Ratio"] == "1.5"
+        assert stats["Net Profit"] == "25%"
