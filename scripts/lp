@@ -10,6 +10,8 @@ Usage:
     lp create <name> [--from REF]      Create a new algorithm project
     lp browse [keyword]                Browse algorithm examples
     lp download [options]              Download historical data
+    lp data list [options]             List available market data
+    lp data info <symbol>              Show details for a symbol
     lp jupyter [--port PORT]           Start Jupyter Lab
     lp status                          Show workspace status
 """
@@ -68,6 +70,33 @@ def _cmd_status(args: argparse.Namespace) -> int:
     from lean_playground.status import print_status
 
     print_status()
+    return 0
+
+
+def _cmd_data_list(args: argparse.Namespace) -> int:
+    from lean_playground.data_inspect import scan_data_directory, format_data_list
+
+    entries = scan_data_directory(
+        asset_type=args.asset,
+        market=args.market,
+        resolution=args.resolution,
+    )
+    print(format_data_list(entries))
+    return 0
+
+
+def _cmd_data_info(args: argparse.Namespace) -> int:
+    from lean_playground.data_inspect import get_symbol_info, format_symbol_info
+
+    entries = get_symbol_info(
+        symbol=args.symbol,
+        asset_type=args.asset,
+        market=args.market,
+    )
+    if not entries:
+        print(f"No data found for symbol: {args.symbol}")
+        return 1
+    print(format_symbol_info(args.symbol, entries))
     return 0
 
 
@@ -261,6 +290,74 @@ Examples:
         help="Logging level (default: INFO)",
     )
     p_download.set_defaults(func=_cmd_download)
+
+    # data (parent command with subcommands)
+    p_data = subparsers.add_parser(
+        "data",
+        help="Inspect available market data",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""Inspect available market data in the Lean data directory.
+
+Use 'lp data list' to see all available data, or 'lp data info <symbol>'
+to get details for a specific symbol.
+""",
+    )
+    data_subparsers = p_data.add_subparsers(dest="data_command", required=True)
+
+    # data list
+    p_data_list = data_subparsers.add_parser(
+        "list",
+        help="List available data",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""List all available market data with optional filters.
+
+Examples:
+    lp data list                           # List all data
+    lp data list --asset crypto            # Filter by asset type
+    lp data list --market binance          # Filter by market
+    lp data list --resolution daily        # Filter by resolution
+""",
+    )
+    p_data_list.add_argument(
+        "--asset",
+        help="Filter by asset type (equity, crypto, forex, future, option)",
+    )
+    p_data_list.add_argument(
+        "--market",
+        help="Filter by market/exchange (usa, binance, oanda, comex, etc.)",
+    )
+    p_data_list.add_argument(
+        "--resolution",
+        help="Filter by resolution (daily, hour, minute, second, tick)",
+    )
+    p_data_list.set_defaults(func=_cmd_data_list)
+
+    # data info
+    p_data_info = data_subparsers.add_parser(
+        "info",
+        help="Show details for a specific symbol",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""Show detailed information for a specific symbol.
+
+Examples:
+    lp data info btcusdt                   # Show all data for BTCUSDT
+    lp data info spy --asset equity        # Filter by asset type
+    lp data info btcusdt --market binance  # Filter by market
+""",
+    )
+    p_data_info.add_argument(
+        "symbol",
+        help="Symbol to inspect (e.g., BTCUSDT, SPY, EURUSD)",
+    )
+    p_data_info.add_argument(
+        "--asset",
+        help="Filter by asset type",
+    )
+    p_data_info.add_argument(
+        "--market",
+        help="Filter by market/exchange",
+    )
+    p_data_info.set_defaults(func=_cmd_data_info)
 
     args = parser.parse_args()
     return args.func(args)

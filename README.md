@@ -53,6 +53,8 @@ The `lp` command is the primary interface. No authentication required.
 | `lp create <name> --from <Example>` | Create from a Lean algorithm example |
 | `lp browse [keyword]` | Browse ~500 algorithm examples |
 | `lp download [options]` | Download historical data from exchanges |
+| `lp data list [options]` | List available market data |
+| `lp data info <symbol>` | Show details for a specific symbol |
 | `lp jupyter` | Restart Jupyter Lab (auto-starts with container) |
 | `lp status` | Show workspace and engine status |
 
@@ -114,6 +116,26 @@ lp download --symbols BTCUSDT --account-type usdt_future
 **Supported intervals:** `1s`, `1m`, `3m`, `5m`, `15m`, `30m`, `1h`, `2h`, `4h`, `6h`, `8h`, `12h`, `1d`, `3d`, `1w`
 
 **Data source:** Downloads from Binance's public data archive (data.binance.vision) with no API key required. The archive provides historical data without rate limits.
+
+### Inspecting Available Data
+
+View what market data is available in the Lean data directory:
+
+```bash
+# List all available data
+lp data list
+
+# Filter by asset type, market, or resolution
+lp data list --asset crypto
+lp data list --market binance
+lp data list --resolution daily
+
+# Get detailed info for a specific symbol
+lp data info BTCUSDT
+lp data info SPY --asset equity
+```
+
+The data directory includes sample data for equities, crypto, forex, and futures. Use `lp download` to add more data from supported exchanges.
 
 ### Research Environment
 
