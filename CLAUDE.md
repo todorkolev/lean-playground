@@ -74,7 +74,7 @@ The container has Lean source code and examples:
 - `/Lean/Launcher/` - Lean engine launcher
 - `/Lean/DownloaderDataProvider/` - Data download utilities
 
-**For more project details**: Read `README.md` in the workspace root.
+**For more project details, workspace capabilities, and tooling**: Read `README.md` in the workspace root.
 
 **For API reference**: Use the **context7** MCP tool to fetch up-to-date documentation for any library (QuantConnect Lean, pandas, numpy, ta-lib, etc.).
 

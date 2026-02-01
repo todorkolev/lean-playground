@@ -1,167 +1,197 @@
 # Lean Playground
 
-A local-first development environment for algorithmic trading with [QuantConnect Lean](https://github.com/QuantConnect/Lean) — the open-source algorithmic trading engine. Build, backtest, and research trading strategies in Python without a QuantConnect subscription.
+> **AI-powered algorithmic trading development.** Write, backtest, and optimize trading strategies with Claude Code in a reproducible QuantConnect Lean environment.
 
-## Prerequisites
+## 🤖 AI-Powered Strategy Development
 
-1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine on Linux)
-2. Install [VS Code](https://code.visualstudio.com/)
-3. Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in VS Code
-
-## Quick Start
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/todorkolev/lean-playground.git
-   cd lean-playground
-   ```
-
-2. Open in VS Code:
-   ```bash
-   code .
-   ```
-
-3. When VS Code prompts you, click **Reopen in Container** (or open the Command Palette with `Ctrl+Shift+P` and run `Dev Containers: Reopen in Container`). The first build pulls a large base image and takes several minutes.
-
-4. Once inside the container, run the sample backtest:
-   ```bash
-   lp backtest algorithms/sample_sma_crossover
-   ```
-
-## Project Structure
+Use the `/achieve` plugin to develop and optimize strategies through natural language goals:
 
 ```
-algorithms/                       # Your trading strategy projects
-  sample_sma_crossover/           # Sample: SMA crossover strategy
-    main.py                       # Algorithm implementation
-    research.ipynb                # Strategy research notebook
-notebooks/                        # Standalone Jupyter research notebooks
-data -> /Lean/Data                # Market data (symlink, created at startup)
-algorithm_examples -> /Lean/...   # ~500 Lean algorithm examples (symlink)
-results/                          # Backtest output and reports
-scripts/                          # lp CLI and lean_playground package
+Goal: "Create a momentum strategy with Sharpe > 1.5 and drawdown < 25%"
 ```
 
-## Using the lp CLI
+The AI will automatically:
+1. **Research** the codebase and strategy patterns
+2. **Plan** an implementation approach
+3. **Build** the strategy code
+4. **Backtest** and validate against your success criteria
+5. **Iterate** until goals are achieved or you're satisfied
+
+Each iteration is logged, so you can review the optimization journey and learn from both successful and failed approaches.
+
+**In Claude Code:**
+```bash
+/achieve:goal              # Start a goal session
+
+# Manage sessions
+/achieve:list-goals    # List all sessions
+/achieve:cancel-goal   # Cancel active session
+```
+
+Session data is stored in `.claude/achieve-sessions/` with full history of attempts.
+
+## ✨ What's Included
+
+- 🤖 **AI Development** — Claude Code + BuildForce + /achieve plugin pre-installed
+- 🚀 **One-command backtesting** — `lp backtest algorithms/my_strategy`
+- 📚 **500+ algorithm examples** — from QuantConnect's Lean repository
+- 📊 **Performance tearsheets** — Sharpe, Sortino, drawdown, equity curves
+- 📈 **Free data downloads** — Binance historical data (no API key needed)
+- 🔬 **Jupyter Lab** — interactive research at localhost:8888
+- 🐍 **Pre-configured Python** — PyTorch, TensorFlow, scikit-learn, pandas, and more
+
+## 🚀 Getting Started
+
+**Prerequisites:** **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** + **[VS Code](https://code.visualstudio.com/)** *+ [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) (VS Code will prompt you to install it if you don't have it already)*
+
+### Option A: Private Repository
+
+Create a private copy for your strategies — keep your trading algorithms confidential:
+
+1. Click **[Import repository](https://github.com/new/import)** on GitHub
+2. Enter `https://github.com/todorkolev/lean-playground.git` as the source
+3. Name your repo and set it to **Private**
+4. Clone your new private repo and open in VS Code
+5. Reopen in Container (`Ctrl+Shift+P` → "Dev Containers: Reopen in Container")
+
+### Option B: Public Fork
+
+Fork if you want to share strategies or contribute back:
+
+1. Click **Fork** on the [repository page](https://github.com/todorkolev/lean-playground)
+2. Clone your fork and open in VS Code
+3. Reopen in Container
+
+### First Run
+
+Once inside the container:
+```bash
+lp backtest algorithms/sample_sma_crossover
+```
+
+**Staying updated:** Run `lp update` periodically to sync with upstream and get new features.
+
+## 📚 The lp CLI
 
 The `lp` command is the primary interface. No authentication required.
 
 | Command | Description |
-|---|---|
+|---------|-------------|
 | `lp backtest <project>` | Run a backtest with the Lean engine |
-| `lp analyze <project>` | Generate performance tearsheet from backtest results |
-| `lp create <name>` | Create a new project from template |
-| `lp create <name> --from <Example>` | Create from a Lean algorithm example |
-| `lp browse [keyword]` | Browse ~500 algorithm examples |
-| `lp download [options]` | Download historical data from exchanges |
-| `lp data list [options]` | List available market data |
-| `lp data info <symbol>` | Show details for a specific symbol |
-| `lp jupyter` | Restart Jupyter Lab (auto-starts with container) |
-| `lp status` | Show workspace and engine status |
+| `lp analyze <project>` | Generate tearsheet from existing results (default: latest) |
+| `lp create <name>` | Create new project from template |
+| `lp create <name> --from <Example>` | Create from algorithm example |
+| `lp browse [keyword]` | Browse 500+ algorithm examples |
+| `lp download [options]` | Download historical data from Binance |
+| `lp data list` | List available market data |
+| `lp data info <symbol>` | Show details for a symbol |
+| `lp jupyter` | Restart Jupyter Lab |
+| `lp status` | Show workspace status |
+| `lp update` | Sync fork with upstream repository |
 
-### Creating and Running a Strategy
-
-1. Create a project:
-   ```bash
-   lp create algorithms/my_strategy
-   ```
-
-2. Edit `algorithms/my_strategy/main.py`:
-   ```python
-   from AlgorithmImports import *
-
-   class MyStrategy(QCAlgorithm):
-       def initialize(self):
-           self.set_start_date(2020, 1, 1)
-           self.set_cash(100_000)
-           self.add_equity("SPY", Resolution.DAILY)
-
-       def on_data(self, data):
-           pass
-   ```
-
-3. Run the backtest:
-   ```bash
-   lp backtest algorithms/my_strategy
-   ```
-
-### Browsing Algorithm Examples
-
-The container includes ~500 Python algorithm examples from the [Lean repository](https://github.com/QuantConnect/Lean/tree/master/Algorithm.Python):
+### Creating a Strategy
 
 ```bash
-lp browse              # List all examples
-lp browse macd         # Search by keyword
+# Create from template
+lp create algorithms/my_strategy
+
+# Or create from an example
+lp browse macd                                    # Find examples
 lp create algorithms/macd_trend --from MACDTrendAlgorithm
-lp backtest algorithms/macd_trend
 ```
 
-### Downloading Historical Data
+Edit `algorithms/my_strategy/main.py`:
 
-Download OHLCV data from Binance directly to the Lean data directory:
+```python
+from AlgorithmImports import *
+
+class MyStrategy(QCAlgorithm):
+    def initialize(self):
+        self.set_start_date(2020, 1, 1)
+        self.set_cash(100_000)
+        self.add_equity("SPY", Resolution.DAILY)
+
+    def on_data(self, data):
+        if not self.portfolio.invested:
+            self.set_holdings("SPY", 1)
+```
+
+Run: `lp backtest algorithms/my_strategy`
+
+### Downloading Data
 
 ```bash
-# Download last 10 days of BTCUSDT (default: 1m and 1h intervals)
+# Download BTCUSDT (default: 1m and 1h, last 10 days)
 lp download --symbols BTCUSDT
 
-# Download multiple symbols and intervals
-lp download --symbols BTCUSDT ETHUSDT --intervals 1m 1h 1d --days 30
+# Multiple symbols, custom intervals and range
+lp download --symbols BTCUSDT ETHUSDT --intervals 1h 1d --days 30
 
-# Download specific date range
-lp download --symbols BTCUSDT --start-date 2024-01-01 --end-date 2024-03-01
-
-# Download futures data (for cryptofuture asset class)
+# Futures data
 lp download --symbols BTCUSDT --account-type usdt_future
 ```
 
-**Supported intervals:** `1s`, `1m`, `3m`, `5m`, `15m`, `30m`, `1h`, `2h`, `4h`, `6h`, `8h`, `12h`, `1d`, `3d`, `1w`
+**Supported intervals:** 1s, 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w
 
-**Data source:** Downloads from Binance's public data archive (data.binance.vision) with no API key required. The archive provides historical data without rate limits.
-
-### Inspecting Available Data
-
-View what market data is available in the Lean data directory:
+### Analyzing Results
 
 ```bash
-# List all available data
-lp data list
+# Generate tearsheet for latest backtest
+lp analyze my_strategy
 
-# Filter by asset type, market, or resolution
-lp data list --asset crypto
-lp data list --market binance
-lp data list --resolution daily
-
-# Get detailed info for a specific symbol
-lp data info BTCUSDT
-lp data info SPY --asset equity
+# Specific backtest by timestamp
+lp analyze my_strategy --backtest 20260129-215353
 ```
 
-The data directory includes sample data for equities, crypto, forex, and futures. Use `lp download` to add more data from supported exchanges.
+Reports include equity curve, drawdown analysis, monthly returns heatmap, and risk metrics.
 
-### Analyzing Backtest Results
+## 🔄 Staying Updated
 
-Generate an HTML tearsheet report from backtest results:
+Keep your repository synchronized with upstream to get new features, examples, and fixes:
 
 ```bash
-# Analyze the latest backtest for a project
-lp analyze sr_levels
-
-# Analyze a specific backtest by timestamp
-lp analyze sr_levels --backtest 20260129-215353
-
-# Include benchmark comparison
-lp analyze sr_levels --benchmark BTC-USD
+lp update              # Pull latest changes (rebase mode)
+lp update --merge      # Use merge mode if others contribute to your repo
 ```
 
-The report includes equity curve, drawdown analysis, monthly returns heatmap, and key risk metrics (Sharpe, Sortino, drawdown, etc.). Reports are saved as `tearsheet.html` in the backtest results folder.
+Works with both private imports and public forks.
 
-### Research Environment
+## ☁️ QuantConnect Cloud (Optional)
 
-Jupyter Lab starts automatically with the container at [http://localhost:8888](http://localhost:8888). Use `QuantBook` in notebooks for interactive research with access to the Lean engine and market data.
+For users with a [QuantConnect](https://www.quantconnect.com/) subscription, the Lean CLI provides cloud features:
 
-## Pre-installed Packages
+```bash
+lean login                # Authenticate
+lean init                 # Initialize workspace
+lean cloud push           # Push to cloud
+lean data download        # Download premium data
+```
 
-The [quantconnect/research](https://hub.docker.com/r/quantconnect/research) base image provides a broad set of data science and ML packages:
+The `lp` commands work independently without authentication.
+
+## 🔧 Reference
+
+<details>
+<summary><strong>Project Structure</strong></summary>
+
+```
+algorithms/                       # Your trading strategy projects
+  sample_sma_crossover/           # Sample strategy
+    main.py                       # Algorithm implementation
+    research.ipynb                # Research notebook
+notebooks/                        # Standalone Jupyter notebooks
+data -> /Lean/Data                # Market data (symlink)
+algorithm_examples -> /Lean/...   # 500+ Lean examples (symlink)
+results/                          # Backtest output
+scripts/                          # lp CLI and lean_playground package
+```
+
+</details>
+
+<details>
+<summary><strong>Pre-installed Packages</strong></summary>
+
+The [quantconnect/research](https://hub.docker.com/r/quantconnect/research) base image includes:
 
 - **Deep Learning**: PyTorch, JAX, TensorFlow
 - **Classical ML**: scikit-learn, XGBoost, LightGBM
@@ -170,53 +200,31 @@ The [quantconnect/research](https://hub.docker.com/r/quantconnect/research) base
 - **Scientific Computing**: NumPy, SciPy, Pandas, StatsModels
 - **Visualization**: Matplotlib, Seaborn, Plotly
 
-River is the only additional package installed by this project (via `requirements.txt`). Everything else comes from the base image.
+</details>
 
-## Development Tools
+<details>
+<summary><strong>Editor Configuration</strong></summary>
 
-### AI Assistants
+VS Code is pre-configured with Python, Jupyter, and Docker extensions. Format-on-save is enabled.
 
-The container includes CLI tools for AI-assisted development:
+Linting and formatting tools (Black, Pylint, isort) are pre-installed:
+- **Black**: Auto-formats code on save
+- **Pylint**: Shows linting errors inline
+- **isort**: Organizes imports on save
 
-- [Claude Code](https://claude.ai/code) (CLI + VS Code extension)
-- [BuildForce](https://buildforce.dev/) (Plugin for Claude Code)
-- [Augment](https://www.augmentcode.com/) (VS Code extension)
+</details>
 
-Set `ANTHROPIC_API_KEY` in your environment for Claude Code (see `.env.example`) or use your Claude subscription to login.
-
-### Editor Configuration
-
-VS Code is pre-configured with extensions for Python, Jupyter, and Docker. Format-on-save and import organization are enabled via Pylance.
-
-Standalone linters and formatters (Black, Pylint, isort) are not pre-installed. Add them if needed:
-```bash
-uv pip install black pylint isort
-```
-
-## QuantConnect Cloud (Optional)
-
-For users with a [QuantConnect](https://www.quantconnect.com/) subscription, the Lean CLI provides cloud features:
-
-```bash
-lean login                # Authenticate
-lean init                 # Initialize workspace
-lean cloud push           # Push to QuantConnect cloud
-lean data download        # Download market data
-```
-
-The `lp` commands work independently and do not require authentication.
-
-## Troubleshooting
+<details>
+<summary><strong>Troubleshooting</strong></summary>
 
 **`lp backtest` fails with "Lean engine not found"**
-You are likely running outside the devcontainer. The Lean engine is only available inside the container.
+You're running outside the devcontainer. The Lean engine is only available inside the container.
 
 **Port 8888 already in use**
-Use an alternative port: `lp jupyter --port 8889`
+Use: `lp jupyter --port 8889`
 
 **`lean login` or `lean init` fails**
-These commands require a QuantConnect subscription. Use `lp` commands instead for local-only workflows.
+These require a QuantConnect subscription. Use `lp` commands instead.
 
-## License
+</details>
 
-MIT License
