@@ -45,6 +45,9 @@ RUN uv pip install lean
 COPY requirements.txt ./
 RUN uv pip install --system -r requirements.txt
 
+# Python linting and formatting tools (used by VS Code)
+RUN uv pip install --system black pylint isort
+
 # Download Python algorithm examples from Lean repo (~500 examples)
 RUN git clone --depth 1 --filter=blob:none --sparse \
     https://github.com/QuantConnect/Lean.git /tmp/lean-source && \
