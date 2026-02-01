@@ -43,7 +43,8 @@ RUN uv pip install lean
 
 # Copy requirements and install project-specific dependencies
 COPY requirements.txt ./
-RUN uv pip install --system -r requirements.txt
+RUN uv pip install --system Cython
+RUN uv pip install --system --no-build-isolation -r requirements.txt
 
 # Python linting and formatting tools (used by VS Code)
 RUN uv pip install --system black pylint isort
@@ -80,6 +81,8 @@ RUN (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y
     && sudo apt update \
     && sudo apt install gh -y
 
-# Use base image's start.sh (creates Lean config.json + starts JupyterLab)
+# Patch base image's start.sh to use /research instead of /Notebooks
+RUN sed -i 's|--notebook-dir="Notebooks"|--notebook-dir="research"|g' /Lean/Launcher/bin/Debug/start.sh
+
 CMD ["/bin/sh", "-c", "/Lean/Launcher/bin/Debug/start.sh"]
 EXPOSE 8888

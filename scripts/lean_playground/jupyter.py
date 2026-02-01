@@ -12,8 +12,8 @@ from pathlib import Path
 
 from lean_playground import LEAN_DATA_DIR, LEAN_LAUNCHER_DIR, WORKSPACE_DIR
 
-_NOTEBOOKS_DIR = WORKSPACE_DIR / "notebooks"
-_NOTEBOOKS_CONFIG = _NOTEBOOKS_DIR / "config.json"
+_RESEARCH_DIR = WORKSPACE_DIR / "research"
+_NOTEBOOKS_CONFIG = _RESEARCH_DIR / "config.json"
 
 _QUANTBOOK_CONFIG = {
     "data-folder": str(LEAN_DATA_DIR),
@@ -31,7 +31,7 @@ def ensure_notebook_config() -> Path:
     Returns:
         Path to the config file.
     """
-    _NOTEBOOKS_DIR.mkdir(parents=True, exist_ok=True)
+    _RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
 
     if _NOTEBOOKS_CONFIG.exists():
         existing = json.loads(_NOTEBOOKS_CONFIG.read_text())

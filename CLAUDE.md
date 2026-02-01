@@ -6,7 +6,7 @@ When working with libraries, frameworks, or APIs, use the **context7** MCP tool 
 
 ## Project Structure
 - **algorithms/**: QuantConnect Lean algorithm projects (Python)
-- **notebooks/**: Standalone Jupyter research notebooks
+- **research/**: Standalone Jupyter research notebooks
 - **data/**: Symlink to /Lean/Data (market data for Lean engine)
 - **results/**: Backtest output and reports
 - **scripts/**: `lp` CLI, lean_playground Python package, and tests

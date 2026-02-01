@@ -65,7 +65,7 @@ tmp/
 # Jupyter Notebook
 # =============================================================================
 .ipynb_checkpoints
-/notebooks/config.json
+/research/config.json
 
 # IPython
 profile_default/

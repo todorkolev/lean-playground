@@ -179,7 +179,7 @@ algorithms/                       # Your trading strategy projects
   sample_sma_crossover/           # Sample strategy
     main.py                       # Algorithm implementation
     research.ipynb                # Research notebook
-notebooks/                        # Standalone Jupyter notebooks
+research/                         # Standalone Jupyter notebooks
 data -> /Lean/Data                # Market data (symlink)
 algorithm_examples -> /Lean/...   # 500+ Lean examples (symlink)
 results/                          # Backtest output
