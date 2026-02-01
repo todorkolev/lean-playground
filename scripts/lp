@@ -15,6 +15,7 @@ Usage:
     lp data info <symbol>              Show details for a symbol
     lp jupyter [--port PORT]           Start Jupyter Lab
     lp status                          Show workspace status
+    lp update [--merge]                Sync with upstream repository
 """
 
 import argparse
@@ -72,6 +73,12 @@ def _cmd_status(args: argparse.Namespace) -> int:
 
     print_status()
     return 0
+
+
+def _cmd_update(args: argparse.Namespace) -> int:
+    from lean_playground.update import update_from_upstream
+
+    return update_from_upstream(merge=args.merge)
 
 
 def _cmd_data_list(args: argparse.Namespace) -> int:
@@ -229,6 +236,28 @@ def main() -> int:
         help="Show workspace status",
     )
     p_status.set_defaults(func=_cmd_status)
+
+    # update
+    p_update = subparsers.add_parser(
+        "update",
+        help="Sync with upstream lean-playground repository",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""Sync your fork with the upstream lean-playground repository.
+
+By default, uses rebase mode which keeps a linear history and automatically
+skips cherry-picked commits. Use --merge when others contribute to your fork.
+
+Examples:
+    lp update              # Rebase mode (default, recommended)
+    lp update --merge      # Merge mode (preserves branch topology)
+""",
+    )
+    p_update.add_argument(
+        "--merge",
+        action="store_true",
+        help="Use merge instead of rebase (for collaborative forks)",
+    )
+    p_update.set_defaults(func=_cmd_update)
 
     # download
     p_download = subparsers.add_parser(

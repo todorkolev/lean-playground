@@ -13,7 +13,7 @@ ALGORITHM_EXAMPLES_DIR = Path("/Lean/Algorithm.Python")
 
 # Derive workspace directory from this file's location
 # scripts/lean_playground/__init__.py -> scripts -> workspace
-_SCRIPT_DIR = Path(__file__).resolve().parent.parent
-WORKSPACE_DIR = _SCRIPT_DIR.parent
+SCRIPTS_DIR = Path(__file__).resolve().parent.parent
+WORKSPACE_DIR = SCRIPTS_DIR.parent
 ALGORITHMS_DIR = WORKSPACE_DIR / "algorithms"
 RESULTS_DIR = WORKSPACE_DIR / "results"
