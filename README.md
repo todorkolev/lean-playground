@@ -78,6 +78,7 @@ The `lp` command is the primary interface. No authentication required.
 | Command | Description |
 |---------|-------------|
 | `lp backtest <project>` | Run a backtest with the Lean engine |
+| `lp live <project>` | Run live/paper trading (21+ brokerages) |
 | `lp analyze <project>` | Generate tearsheet from existing results (default: latest) |
 | `lp create <name>` | Create new project from template |
 | `lp create <name> --from <Example>` | Create from algorithm example |
@@ -144,6 +145,52 @@ lp analyze my_strategy --backtest 20260129-215353
 ```
 
 Reports include equity curve, drawdown analysis, monthly returns heatmap, and risk metrics.
+
+### Paper & Live Trading
+
+Run algorithms with 21+ supported brokerages including Binance, Alpaca, Bybit, Kraken, Interactive Brokers, and more.
+
+```bash
+# List all available brokerages
+lp live --list-brokerages
+```
+
+**Setup credentials:**
+```bash
+# Copy .env.example and add your API keys
+cp .env.example .env
+
+# Credential pattern: {BROKERAGE}_API_KEY, {BROKERAGE}_API_SECRET
+# See .env.example for all supported brokerages
+```
+
+**Paper trading** (testnet, no real funds - default):
+```bash
+lp live algorithms/my_strategy --brokerage binance       # Binance spot
+lp live algorithms/my_strategy --brokerage binance-usdt-futures  # Binance futures
+lp live algorithms/my_strategy --brokerage alpaca        # Alpaca
+lp live algorithms/my_strategy --brokerage bybit         # Bybit
+lp live algorithms/my_strategy --cash 50000              # Custom starting balance
+```
+
+**Live trading** (real funds):
+```bash
+lp live algorithms/my_strategy --brokerage binance --live  # Real funds
+```
+
+Your algorithm should set the appropriate brokerage model:
+```python
+# For Binance spot trading
+self.set_brokerage_model(BrokerageName.BINANCE, AccountType.CASH)
+
+# For Binance futures trading
+self.set_brokerage_model(BrokerageName.BINANCE_FUTURES, AccountType.MARGIN)
+
+# For Alpaca
+self.set_brokerage_model(BrokerageName.ALPACA, AccountType.MARGIN)
+```
+
+See `algorithms/binance_paper_example/` for a complete example.
 
 ## 🔄 Staying Updated
 

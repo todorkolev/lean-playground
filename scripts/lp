@@ -7,6 +7,7 @@ without requiring QuantConnect authentication.
 
 Usage:
     lp backtest <project>              Run a backtest
+    lp live <project> [options]        Run live/paper trading
     lp analyze <project>               Generate performance tearsheet
     lp create <name> [--from REF]      Create a new algorithm project
     lp browse [keyword]                Browse algorithm examples
@@ -30,6 +31,28 @@ def _cmd_backtest(args: argparse.Namespace) -> int:
     project_path = Path(args.project)
     parameters = _parse_parameters(args.params) if args.params else None
     return run_backtest(project_path, parameters=parameters)
+
+
+def _cmd_live(args: argparse.Namespace) -> int:
+    from lean_playground.live import run_live, print_available_brokerages
+
+    # Handle --list-brokerages
+    if args.list_brokerages:
+        print_available_brokerages()
+        return 0
+
+    project_path = Path(args.project)
+    try:
+        return run_live(
+            project_path,
+            brokerage_name=args.brokerage,
+            paper=not args.live,
+            cash_amount=args.cash,
+            cash_currency=args.currency,
+        )
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
 
 
 def _parse_parameters(params: list[str]) -> dict[str, str]:
@@ -185,6 +208,68 @@ def main() -> int:
         help="Algorithm parameter (can be repeated). E.g., -p symbol=SPY -p asset_type=equity",
     )
     p_backtest.set_defaults(func=_cmd_backtest)
+
+    # live
+    p_live = subparsers.add_parser(
+        "live",
+        help="Run live or paper trading with any supported brokerage",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""Run live or paper trading with any supported brokerage.
+
+By default, uses paper trading mode (testnet where available).
+Credentials are read from environment variables: {BROKERAGE}_API_KEY, {BROKERAGE}_API_SECRET
+
+Examples:
+    lp live --list-brokerages                               # List available brokerages
+    lp live algorithms/my_strategy                          # Paper trading with Binance (default)
+    lp live algorithms/my_strategy --brokerage binance      # Explicit brokerage
+    lp live algorithms/my_strategy --brokerage alpaca       # Use Alpaca
+    lp live algorithms/my_strategy --brokerage bybit        # Use Bybit
+    lp live algorithms/my_strategy --cash 50000             # Custom starting cash
+    lp live algorithms/my_strategy --live                   # REAL trading (caution!)
+
+Environment variables (pattern: {BROKERAGE}_API_KEY, {BROKERAGE}_API_SECRET):
+    BINANCE_API_KEY, BINANCE_API_SECRET
+    ALPACA_API_KEY, ALPACA_API_SECRET
+    BYBIT_API_KEY, BYBIT_API_SECRET
+    (etc.)
+""",
+    )
+    p_live.add_argument(
+        "project",
+        nargs="?",
+        default=None,
+        help="Path to the algorithm project directory",
+    )
+    p_live.add_argument(
+        "--brokerage", "-b",
+        type=str,
+        default="binance",
+        help="Brokerage to use (default: binance). Use --list-brokerages to see options.",
+    )
+    p_live.add_argument(
+        "--list-brokerages",
+        action="store_true",
+        help="List all available brokerages and exit",
+    )
+    p_live.add_argument(
+        "--cash",
+        type=float,
+        default=10000.0,
+        help="Initial cash balance (default: 10000)",
+    )
+    p_live.add_argument(
+        "--currency",
+        type=str,
+        default="USDT",
+        help="Cash currency (default: USDT)",
+    )
+    p_live.add_argument(
+        "--live",
+        action="store_true",
+        help="Use LIVE trading with real funds (default: paper trading on testnet)",
+    )
+    p_live.set_defaults(func=_cmd_live)
 
     # create
     p_create = subparsers.add_parser(

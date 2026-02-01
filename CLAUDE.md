@@ -17,12 +17,32 @@ When working with libraries, frameworks, or APIs, use the **context7** MCP tool 
 ### lp CLI (no QuantConnect auth required)
 ```bash
 lp backtest algorithms/sample_sma_crossover    # Run a backtest
+lp live algorithms/my_strategy --brokerage binance  # Paper trading (21+ brokerages)
 lp create algorithms/my_strategy               # Create new project from template
 lp create algorithms/my_macd --from MACDTrendAlgorithm  # Create from algorithm example
 lp browse                                      # List all algorithm examples
 lp browse sma                                  # Search algorithm examples
 lp jupyter                                     # Start Jupyter Lab
 lp status                                      # Show workspace status
+```
+
+### Paper & Live Trading (21+ Brokerages)
+```bash
+# List all supported brokerages
+lp live --list-brokerages
+
+# Add API keys to .env file (copy from .env.example)
+# Pattern: {BROKERAGE}_API_KEY, {BROKERAGE}_API_SECRET
+
+# Paper trading (testnet, no real funds) - DEFAULT
+lp live algorithms/my_strategy --brokerage binance              # Binance spot
+lp live algorithms/my_strategy --brokerage binance-usdt-futures # Binance futures
+lp live algorithms/my_strategy --brokerage alpaca               # Alpaca
+lp live algorithms/my_strategy --brokerage bybit                # Bybit
+lp live algorithms/my_strategy --cash 50000                     # Custom balance
+
+# Live trading (real funds)
+lp live algorithms/my_strategy --brokerage binance --live       # Real funds
 ```
 
 ### Lean CLI (requires QuantConnect subscription, optional)
