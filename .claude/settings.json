@@ -1,12 +1,37 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "NotebookEdit",
+      "WebFetch",
+      "WebSearch",
+      "Task",
+      "Skill",
+      "mcp__*",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs"
+    ]
+  },
+  "model": "opus",
+  "alwaysThinkingEnabled": true,
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "context7"
+  ],
   "enabledPlugins": {
-    "achieve@lean-playground": true
+    "achieve@claude-achieve-plugin": true
   },
   "extraKnownMarketplaces": {
-    "lean-playground": {
+    "claude-achieve-plugin": {
       "source": {
-        "source": "directory",
-        "path": "./"
+        "source": "github",
+        "owner": "todorkolev",
+        "repo": "claude-achieve-plugin"
       }
     }
   },
