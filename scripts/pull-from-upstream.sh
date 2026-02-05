@@ -10,12 +10,12 @@ set -e
 UPSTREAM_URL="https://github.com/todorkolev/lean-playground.git"
 USE_MERGE=false
 
-if [[ "$1" == "--merge" ]]; then
+if [ "$1" = "--merge" ]; then
     USE_MERGE=true
 fi
 
 # Auto-add upstream remote if not configured
-if ! git remote get-url upstream &>/dev/null; then
+if ! git remote get-url upstream >/dev/null 2>&1; then
     echo "Adding upstream remote: $UPSTREAM_URL"
     git remote add upstream "$UPSTREAM_URL"
 fi
@@ -36,14 +36,14 @@ echo "Commits in your branch not in upstream:"
 git log --oneline upstream/main..HEAD || echo "  (none)"
 
 # Check if already up to date
-if [[ -z "$(git log --oneline HEAD..upstream/main)" ]]; then
+if [ -z "$(git log --oneline HEAD..upstream/main)" ]; then
     echo ""
     echo "Already up to date with upstream/main."
     exit 0
 fi
 
 echo ""
-if [[ "$USE_MERGE" == "true" ]]; then
+if [ "$USE_MERGE" = "true" ]; then
     echo "Merging upstream/main (use for external contributions)..."
     git merge upstream/main --no-edit
 else
