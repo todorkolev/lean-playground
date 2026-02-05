@@ -100,7 +100,11 @@ The container has Lean source code and examples:
 
 ### 3. Data Management
 
-**ALWAYS check available data first before downloading:**
+> **CRITICAL: NEVER download data without first checking what's available.**
+> Run `lp data list` or `lp data info <SYMBOL>` BEFORE any `lp download` command.
+> Downloading duplicate data wastes time and bandwidth.
+
+**Check available data first:**
 ```bash
 # Inspect available data
 lp data list                              # List all available data
